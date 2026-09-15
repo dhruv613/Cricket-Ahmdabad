@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script type="importmap">{"imports":{"three":"../vendor/three/build/three.module.js","three/addons/":"../vendor/three/examples/jsm/"}}</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cricket Academy & Facility</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<script src="./academy-config.js"></script>
+<style>
+  html, body { margin:0; padding:0; background:#061633; }
+  * { box-sizing:border-box; }
+  a { color:#00aeef; text-decoration:none; }
+  a:hover { color:#40d6ff; }
+  ::selection { background:#00aeef; color:#061633; }
+  :focus-visible { outline:2px solid #00aeef; outline-offset:3px; }
+  @keyframes rmsa-line { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+  @keyframes rmsa-fade { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+  @keyframes rmsa-scroll { 0% { transform:scaleY(0); transform-origin:top; } 50% { transform:scaleY(1); transform-origin:top; } 51% { transform:scaleY(1); transform-origin:bottom; } 100% { transform:scaleY(0); transform-origin:bottom; } }
+</style>
+</helmet>
+<div id="top" data-screen-label="3D Hero" style="position:relative; width:100%; height:100vh; min-height:560px; background:#061633; overflow:hidden; font-family:'Barlow',system-ui,sans-serif; color:#f7faff">
+
+  <x-import component-from-global-scope="campus-scene" from="./campus-scene.js" hint-size="100%,100%" style="position:absolute; inset:0"></x-import>
+
+  <div style="position:absolute; inset:0; pointer-events:none; transition:opacity .6s ease; opacity:{{ chrome.o }}; background:linear-gradient(180deg, rgba(6,22,51,.92) 0%, rgba(6,22,51,.45) 14%, rgba(6,22,51,0) 30%)"></div>
+  <div style="position:absolute; inset:0; pointer-events:none; transition:opacity .6s ease; opacity:{{ veil.o }}; background:linear-gradient(90deg, rgba(6,22,51,.94) 0%, rgba(6,22,51,.72) 26%, rgba(6,22,51,.15) 48%, rgba(6,22,51,0) 62%)"></div>
+  <div style="position:absolute; inset:0; pointer-events:none; transition:opacity .6s ease; opacity:{{ chrome.o }}; background:linear-gradient(0deg, rgba(6,22,51,.95) 0%, rgba(6,22,51,.6) 12%, rgba(6,22,51,0) 30%)"></div>
+
+  <nav style="position:absolute; top:0; left:0; right:0; display:flex; align-items:center; justify-content:space-between; gap:32px; padding:24px 46px; z-index:20; transition:opacity .6s ease; opacity:{{ chrome.o }}; pointer-events:{{ chrome.pe }}">
+    <a href="#top" style="display:flex; align-items:center; gap:13px; color:#f7faff">
+      <span style="display:flex; gap:3px; transform:skewX(-14deg)">
+        <span style="display:block; width:7px; height:28px; background:#00aeef"></span>
+        <span style="display:block; width:7px; height:28px; background:#f7faff; opacity:.85"></span>
+        <span style="display:block; width:7px; height:28px; background:#f7faff; opacity:.35"></span>
+      </span>
+      <span style="display:flex; flex-direction:column; line-height:1">
+        <span style="font-family:'Anton',sans-serif; font-size:17px; letter-spacing:.04em">{{ brand.mark }}</span>
+        <span style="font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:10.5px; letter-spacing:.34em; color:rgba(238,243,236,.55); margin-top:3px">{{ brand.markSub }}</span>
+      </span>
+    </a>
+    <div style="display:flex; align-items:center; gap:30px; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:13px; letter-spacing:.2em">
+      <sc-for list="{{ nav }}" as="item" hint-placeholder-count="7">
+        <a href="{{ item.href }}" style="color:{{ item.color }}" style-hover="color:#00aeef">{{ item.label }}</a>
+      </sc-for>
+      <a href="{{ navCta.href }}" style="background:#00aeef; color:#061633; padding:12px 20px 10px; font-weight:700; letter-spacing:.18em; box-shadow:0 8px 26px rgba(0,174,239,.18)" style-hover="background:#40d6ff; color:#061633">{{ navCta.label }}</a>
+    </div>
+  </nav>
+
+  <button type="button" onClick="{{ overview }}" style="position:absolute; top:{{ back.top }}; left:46px; z-index:30; display:flex; align-items:center; gap:10px; background:rgba(6,22,51,.78); border:1px solid rgba(238,243,236,.22); color:#f7faff; padding:13px 21px 11px; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; letter-spacing:.22em; transition:opacity .5s ease; opacity:{{ back.o }}; pointer-events:{{ back.pe }}" style-hover="border-color:#00aeef; color:#00aeef">{{ hero.overviewCta }}</button>
+
+  <div style="position:absolute; left:46px; top:24%; max-width:620px; z-index:15; transition:opacity .8s ease, transform .8s ease; opacity:{{ reveal.o }}; transform:translateY({{ reveal.y }}); pointer-events:{{ reveal.pe }}">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:22px">
+      <span style="display:block; width:7px; height:7px; border-radius:50%; background:#00aeef"></span>
+      <span style="font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:12.5px; letter-spacing:.32em; white-space:nowrap; color:rgba(238,243,236,.72)">{{ brand.kicker }}</span>
+    </div>
+    <h1 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:clamp(42px,4.8vw,70px); line-height:1.02; letter-spacing:.004em; text-transform:uppercase"><span style="display:block;font-size:.53em;margin-bottom:14px">{{ hero.headlineTop }}</span>{{ hero.headlineBottom }}</h1>
+    <p style="margin:24px 0 0; max-width:432px; font-size:16.5px; line-height:1.58; color:rgba(238,243,236,.66)">{{ hero.sub }}</p>
+    <div style="display:flex; align-items:center; gap:14px; margin-top:34px">
+      <a href="{{ hero.primaryCta.href }}" style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:.2em; background:#00aeef; color:#061633; padding:16px 28px 14px; box-shadow:0 10px 34px rgba(0,174,239,.22)" style-hover="background:#40d6ff; color:#061633">{{ hero.primaryCta.label }}</a>
+      <button type="button" onClick="{{ explore }}" style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:.2em; background:transparent; color:#f7faff; border:1px solid rgba(238,243,236,.3); padding:16px 26px 14px; cursor:pointer" style-hover="border-color:#00aeef; color:#00aeef">{{ hero.secondaryCta }}</button>
+    </div>
+    <p style="font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.18em;color:#a8bbd4;margin-top:24px">{{ hero.supportingLine }}</p>
+  </div>
+
+  <div id="facility-panel" style="position:absolute; z-index:16; top:44%; right:46px; transform:translateY(-50%); width:344px; transition:opacity .4s ease, transform .4s ease; opacity:{{ panel.o }}; transform:translateY({{ panel.y }}); pointer-events:{{ panel.pe }}; background:rgba(6,22,51,.9); border:1px solid rgba(238,243,236,.11); border-top:3px solid #00aeef; padding:24px 24px 22px; backdrop-filter:blur(6px)">
+    <div style="display:flex; align-items:baseline; gap:10px">
+      <span style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; letter-spacing:.2em; color:#00aeef">{{ active.num }}</span>
+      <span style="font-family:'Anton',sans-serif; font-size:29px; line-height:1; letter-spacing:.02em">{{ active.label }}</span>
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:12.5px; letter-spacing:.22em; text-transform:uppercase; color:rgba(238,243,236,.5); margin-top:10px">{{ active.title }}</div>
+    <div style="height:1px; background:rgba(238,243,236,.12); margin:18px 0"></div>
+    <div style="display:flex; flex-direction:column; gap:11px; font-size:14.5px; color:rgba(238,243,236,.82)">
+      <sc-for list="{{ active.points }}" as="pt" hint-placeholder-count="4">
+        <div style="display:flex; align-items:center; gap:11px"><span style="display:block; width:11px; height:1.5px; background:#00aeef"></span>{{ pt }}</div>
+      </sc-for>
+    </div>
+    <a href="{{ active.href }}" style="display:inline-block; margin-top:22px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; letter-spacing:.2em; color:#00aeef; border-bottom:1px solid rgba(0,174,239,.4); padding-bottom:4px" style-hover="color:#40d6ff; border-color:#40d6ff">VIEW PROGRAM →</a>
+  </div>
+
+  <div style="position:absolute; left:46px; right:46px; bottom:30px; z-index:18; transition:opacity .9s ease; opacity:{{ chrome.o }}; pointer-events:{{ chrome.pe }}">
+    <div style="height:1px; background:rgba(238,243,236,.14)"></div>
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:32px; padding-top:16px">
+      <div style="display:flex; align-items:flex-end; gap:38px">
+        <sc-for list="{{ selector }}" as="f" hint-placeholder-count="5">
+          <button type="button" onClick="{{ f.on }}" style="background:none; border:0; padding:0 0 10px; cursor:pointer; text-align:left; border-bottom:2px solid {{ f.bar }}; transition:border-color .3s ease">
+            <span style="display:block; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:11.5px; letter-spacing:.28em; margin-bottom:5px; color:{{ f.num }}">{{ f.numLabel }}</span>
+            <span style="display:block; font-family:'Anton',sans-serif; font-size:20px; letter-spacing:.03em; white-space:nowrap; color:{{ f.lab }}">{{ f.label }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex; align-items:center; gap:26px; padding-bottom:10px">
+        <button type="button" onClick="{{ replay }}" style="display:flex; align-items:center; gap:9px; background:none; border:0; padding:0; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:12px; letter-spacing:.24em; color:rgba(238,243,236,.55)" style-hover="color:#00aeef">↺ REPLAY CINEMATIC</button>
+        <div style="display:flex; align-items:center; gap:11px">
+          <span style="font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:12px; letter-spacing:.24em; color:rgba(238,243,236,.4)">SCROLL TO EXPLORE</span>
+          <span style="display:block; width:1px; height:26px; background:#00aeef; animation:rmsa-scroll 2.6s ease-in-out infinite"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute; inset:0; z-index:40; background:#061633; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; transition:opacity .9s ease; opacity:{{ curtain.o }}; pointer-events:{{ curtain.pe }}">
+    <span style="display:flex; gap:5px; transform:skewX(-14deg)">
+      <span style="display:block; width:13px; height:52px; background:#00aeef"></span>
+      <span style="display:block; width:13px; height:52px; background:#f7faff; opacity:.85"></span>
+      <span style="display:block; width:13px; height:52px; background:#f7faff; opacity:.35"></span>
+    </span>
+    <span style="font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:12px; letter-spacing:.42em; color:rgba(238,243,236,.6); animation:rmsa-fade .8s ease both .35s">{{ brand.full }}</span>
+    <span style="display:block; width:170px; height:1px; background:#00aeef; transform-origin:left; animation:rmsa-line 1.5s cubic-bezier(.4,0,.2,1) both .2s"></span>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;autoIntro&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Cinematic&quot;},&quot;cameraPreset&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Camera&quot;}}">
+/* ThreeDHero — the 3D campus hero, self-contained.
+   All copy comes from academy-config.js (window.ACADEMY); the lower page
+   sections belong in a separate AcademyContent component, not here. */
+class Component extends DCLogic {
+  state = { sport: null, reveal: false, curtain: true, explore: false, cfg: 0 };
+
+  componentDidMount() {
+    this._sel = (e) => this.setState({ sport: (e.detail && e.detail.key) || null });
+    this._done = () => this.setState({ reveal: true });
+    this._start = () => this.setState({ reveal: false, sport: null, explore: false, curtain: true });
+    this._cfg = () => this.setState({ cfg: this.state.cfg + 1 });
+    window.addEventListener('campus:select', this._sel);
+    window.addEventListener('campus:introdone', this._done);
+    window.addEventListener('campus:introstart', this._start);
+    window.addEventListener('academy:config', this._cfg);
+    if (!window.ACADEMY) {                       // config script may still be in flight
+      let tries = 0;
+      this._poll = setInterval(() => {
+        if (window.ACADEMY || ++tries > 40) { clearInterval(this._poll); this._cfg(); }
+      }, 50);
+    }
+    this._t1 = setTimeout(() => this.setState({ curtain: false }), 1500);
+    this._t2 = setTimeout(() => this.setState({ reveal: true }), 6200);
+    if (this.props.autoIntro === false) {
+      this.setState({ curtain: false, reveal: true });
+      clearTimeout(this._t1);
+    }
+    if (this.props.cameraPreset && this.props.cameraPreset !== 'auto') {
+      const s = this.scene();
+      if (s && s.setPreset) s.setPreset(this.props.cameraPreset);
+    }
+  }
+  componentDidUpdate(_, prev) {
+    if (this.state.curtain && !prev.curtain) {
+      clearTimeout(this._t1);
+      this._t1 = setTimeout(() => this.setState({ curtain: false }), 1400);
+    }
+  }
+  componentWillUnmount() {
+    window.removeEventListener('campus:select', this._sel);
+    window.removeEventListener('campus:introdone', this._done);
+    window.removeEventListener('campus:introstart', this._start);
+    window.removeEventListener('academy:config', this._cfg);
+    clearTimeout(this._t1); clearTimeout(this._t2); clearInterval(this._poll);
+  }
+
+  scene() { return document.querySelector('campus-scene'); }
+  cfg() { return window.ACADEMY || { brand: {}, hero: { primaryCta: {} }, nav: [], navCta: {}, facilities: [] }; }
+  pageLink(href) {
+    return href && href[0] === '#' && href !== '#top' && window.location.pathname.endsWith('.dc.html')
+      ? '../index.html' + href : href;
+  }
+
+  pick(key) {
+    const next = this.state.sport === key ? null : key;
+    this.setState({ sport: next, explore: false });
+    const s = this.scene();
+    if (s && s.setSport) s.setSport(next);
+  }
+  toOverview() {
+    this.setState({ sport: null, explore: false });
+    const s = this.scene();
+    if (s && s.setSport) s.setSport(null);
+  }
+
+  renderVals() {
+    const C = this.cfg();
+    const sel = this.state.sport;
+    const list = C.facilities || [];
+    const active = list.find((f) => f.key === sel) || list[0] || { points: [] };
+    const ex = this.state.explore;
+    const heroShown = this.state.reveal && !ex && !sel;
+    const uiShown = this.state.reveal && !ex;
+
+    return {
+      brand: C.brand || {},
+      hero: { ...(C.hero || {}), primaryCta: { ...((C.hero || {}).primaryCta || {}), href: this.pageLink(((C.hero || {}).primaryCta || {}).href) } },
+      navCta: { ...(C.navCta || {}), href: this.pageLink((C.navCta || {}).href) },
+      nav: (C.nav || []).map((n, i) => ({
+        label: n.label, href: this.pageLink(n.href),
+        color: i === 0 ? '#f7faff' : 'rgba(238,243,236,.62)'
+      })),
+      selector: list.map((f) => {
+        const on = sel === f.key;
+        return {
+          label: f.label, numLabel: f.num,
+          on: () => this.pick(f.key),
+          num: on ? '#00aeef' : 'rgba(238,243,236,.45)',
+          lab: on ? '#00aeef' : 'rgba(238,243,236,.7)',
+          bar: on ? '#00aeef' : 'rgba(238,243,236,0)'
+        };
+      }),
+      active: {
+        num: active.num, label: active.label, title: active.title,
+        points: active.points || [], href: this.pageLink(active.href || '#programs')
+      },
+      panel: { o: sel ? 1 : 0, y: sel ? '-50%' : 'calc(-50% + 14px)', pe: sel ? 'auto' : 'none' },
+      reveal: { o: heroShown ? 1 : 0, y: heroShown ? '0px' : '22px', pe: heroShown ? 'auto' : 'none' },
+      veil: { o: uiShown ? 1 : 0 },
+      chrome: { o: uiShown ? 1 : 0, pe: uiShown ? 'auto' : 'none' },
+      back: {
+        o: (ex || sel) && this.state.reveal ? 1 : 0,
+        pe: (ex || sel) ? 'auto' : 'none',
+        top: ex ? '26px' : '104px'   // clears the nav bar while the nav is still up
+      },
+      curtain: { o: this.state.curtain ? 1 : 0, pe: this.state.curtain ? 'auto' : 'none' },
+      replay: () => { const s = this.scene(); if (s && s.replayIntro) s.replayIntro(); },
+      explore: () => { this.toOverview(); this.setState({ explore: true }); },
+      overview: () => this.toOverview()
+    };
+  }
+}
+
+</script>
+</body>
+</html>

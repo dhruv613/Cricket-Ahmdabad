@@ -1,0 +1,4 @@
+node_modules/
+preview-server*.log
+assets/campus/*.raw.glb
+artifacts/

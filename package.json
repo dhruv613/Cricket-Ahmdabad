@@ -1,0 +1,23 @@
+{
+  "name": "ahm-cricket",
+  "version": "1.0.0",
+  "description": "The rebuilt Three.js campus is the opening `ThreeDHero`. The page below it follows the supplied official client brief. This is a static website; no build step, backend, or form service is required.",
+  "scripts": {
+    "dev": "node tools/serve.cjs",
+    "start": "node tools/serve.cjs",
+    "build:campus": "python tools/prepare-compact-assets.py && node tools/build-campus.mjs",
+    "test:campus": "node tools/verify-campus.mjs && node tools/verify-campus-resilience.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "devDependencies": {
+    "@gltf-transform/core": "^4.3.0",
+    "@gltf-transform/extensions": "^4.3.0",
+    "@gltf-transform/functions": "^4.3.0",
+    "meshoptimizer": "^0.25.0",
+    "playwright": "^1.58.2"
+  },
+  "private": true
+}

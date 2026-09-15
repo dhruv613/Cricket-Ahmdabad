@@ -1,0 +1,49 @@
+<!doctype html><meta charset="utf-8"><title>Campus asset builder</title>
+<script type="importmap">{"imports":{"three":"../vendor/three/build/three.module.js","three/addons/":"../vendor/three/examples/jsm/"}}</script>
+<script src="../Rajkot Multi-Sport Academy 3D/academy-config.js"></script>
+<script type="module">
+import * as T from 'three';
+import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
+import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
+import {buildCampus} from '../campus/model.js';
+import {loadMaterials} from '../campus/materials.js';
+import {createPlayerAsset} from './player-source.js';
+window.bake = async()=>{
+  const renderer=new T.WebGLRenderer(),source=new T.Scene();
+  const M=await loadMaterials(renderer,()=>{}, {compact:true});
+  const model=await buildCampus(source,M,()=>{});
+  source.updateMatrixWorld(true);
+  const groups=new Map();
+  // Bake world transforms, then merge by material and shadow policy. This replaces
+  // hundreds of differently sized primitive batches with a few dozen render calls.
+  source.traverse(o=>{
+    if(!o.isMesh)return;
+    const key=o.material.uuid+o.castShadow, group=groups.get(key)||{material:o.material,cast:o.castShadow,geometries:[]};groups.set(key,group);
+    const count=o.isInstancedMesh?o.count:1;
+    for(let i=0;i<count;i++){
+      const matrix=o.matrixWorld.clone();
+      if(o.isInstancedMesh){const instance=new T.Matrix4();o.getMatrixAt(i,instance);matrix.multiply(instance);}
+      let g=o.geometry.clone().applyMatrix4(matrix);if(g.index)g=g.toNonIndexed();
+      for(const name of Object.keys(g.attributes))if(!['position','normal','uv','color'].includes(name))g.deleteAttribute(name);
+      if(!g.attributes.color){const c=new Float32Array(g.attributes.position.count*3);c.fill(1);g.setAttribute('color',new T.BufferAttribute(c,3));}
+      group.geometries.push(g);
+    }
+  });
+  const result=new T.Scene();let triangles=0;
+  for(const {material,cast,geometries} of groups.values()){
+    const geometry=mergeVertices(mergeGeometries(geometries),.0001);
+    const mesh=new T.Mesh(geometry,material);mesh.name=material.name||'Campus detail';mesh.userData.castShadow=cast;mesh.userData.receiveShadow=true;result.add(mesh);
+    triangles+=geometry.index.count/3;geometries.forEach(g=>g.dispose());
+  }
+  result.userData={treeCount:model.treeCount,units:'metres',source:'Seventeen Sports concept campus'};
+  const exporter=new GLTFExporter();
+  async function save(name,object,options={}){
+    const buffer=await exporter.parseAsync(object,{binary:true,maxTextureSize:512,...options});
+    const bytes=new Uint8Array(buffer);let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+    await window.writeAsset(name,btoa(binary));
+  }
+  await save('academy-campus.raw.glb',result);
+  const player=createPlayerAsset();await save('academy-player.glb',player.root,{animations:player.animations});
+  renderer.dispose();return {triangles,drawCalls:result.children.length,trees:model.treeCount};
+};
+</script>

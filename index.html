@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/"}}</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cricket Academy & Facility</title>
+  <meta name="description"
+    content="Professional cricket coaching, practice facilities and structured player development.">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0a1628;
+      overflow: hidden;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    a {
+      color: #4da8da;
+      text-decoration: none;
+      transition: color .25s ease;
+    }
+
+    a:hover {
+      color: #7ec8e3;
+    }
+
+    ::selection {
+      background: #4da8da;
+      color: #ffffff;
+    }
+
+    :focus-visible {
+      outline: 2px solid #4da8da;
+      outline-offset: 3px;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    @keyframes rmsa-line {
+      from {
+        transform: scaleX(0);
+      }
+
+      to {
+        transform: scaleX(1);
+      }
+    }
+
+    @keyframes rmsa-fade {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @keyframes rmsa-scroll {
+      0% {
+        transform: scaleY(0);
+        transform-origin: top;
+      }
+
+      50% {
+        transform: scaleY(1);
+        transform-origin: top;
+      }
+
+      51% {
+        transform: scaleY(1);
+        transform-origin: bottom;
+      }
+
+      100% {
+        transform: scaleY(0);
+        transform-origin: bottom;
+      }
+    }
+
+    /* ─── Hero container ─── */
+    #top {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      min-height: 560px;
+      background: #0a1628;
+      overflow: hidden;
+      font-family: 'Barlow', system-ui, sans-serif;
+      color: #eef3ec;
+    }
+
+    /* ─── Gradient veils ─── */
+    .veil-top,
+    .veil-left,
+    .veil-bottom {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      transition: opacity .6s ease;
+    }
+
+    .veil-top {
+      background: linear-gradient(180deg, rgba(10, 22, 40, .92) 0%, rgba(10, 22, 40, .45) 14%, rgba(10, 22, 40, 0) 30%);
+    }
+
+    .veil-left {
+      background: linear-gradient(90deg, rgba(10, 22, 40, .94) 0%, rgba(10, 22, 40, .72) 26%, rgba(10, 22, 40, .15) 48%, rgba(10, 22, 40, 0) 62%);
+    }
+
+    .veil-bottom {
+      background: linear-gradient(0deg, rgba(10, 22, 40, .95) 0%, rgba(10, 22, 40, .6) 12%, rgba(10, 22, 40, 0) 30%);
+    }
+
+    /* ─── Navigation ─── */
+    #main-nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      padding: 24px 46px;
+      z-index: 20;
+      transition: opacity .6s ease;
+    }
+
+    .logo-link {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      color: #eef3ec;
+      text-decoration: none;
+    }
+
+    .logo-bars {
+      display: flex;
+      gap: 3px;
+      transform: skewX(-14deg);
+    }
+
+    .logo-bars span {
+      display: block;
+      width: 7px;
+      height: 28px;
+    }
+
+    .logo-bars span:nth-child(1) {
+      background: #4da8da;
+    }
+
+    .logo-bars span:nth-child(2) {
+      background: #eef3ec;
+      opacity: .85;
+    }
+
+    .logo-bars span:nth-child(3) {
+      background: #eef3ec;
+      opacity: .35;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+    }
+
+    .logo-mark {
+      font-family: 'Anton', sans-serif;
+      font-size: 17px;
+      letter-spacing: .04em;
+    }
+
+    .logo-sub {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 10.5px;
+      letter-spacing: .34em;
+      color: rgba(238, 243, 236, .55);
+      margin-top: 3px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: .2em;
+    }
+
+    .nav-links a {
+      transition: color .25s ease;
+    }
+
+    .nav-links a:hover {
+      color: #4da8da !important;
+    }
+
+    .nav-cta {
+      background: #4da8da;
+      color: #ffffff;
+      padding: 12px 20px 10px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-decoration: none;
+      box-shadow: 0 8px 26px rgba(77, 168, 218, .18);
+      transition: background .25s ease;
+    }
+
+    .nav-cta:hover {
+      background: #7ec8e3;
+      color: #ffffff;
+    }
+
+    /* ─── Back button ─── */
+    #back-btn {
+      position: absolute;
+      left: 46px;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(10, 18, 32, .78);
+      border: 1px solid rgba(238, 243, 236, .22);
+      color: #eef3ec;
+      padding: 13px 21px 11px;
+      cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .22em;
+      transition: opacity .5s ease, border-color .25s ease, color .25s ease;
+    }
+
+    #back-btn:hover {
+      border-color: #4da8da;
+      color: #4da8da;
+    }
+
+    /* ─── Hero content ─── */
+    #hero-content {
+      position: absolute;
+      left: 46px;
+      top: 24%;
+      max-width: 620px;
+      z-index: 15;
+      transition: opacity .8s ease, transform .8s ease;
+    }
+
+    .kicker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .kicker-dot {
+      display: block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4da8da;
+    }
+
+    .kicker-text {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 12.5px;
+      letter-spacing: .32em;
+      white-space: nowrap;
+      color: rgba(238, 243, 236, .72);
+    }
+
+    #hero-content h1 {
+      margin: 0;
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: clamp(44px, 5.3vw, 80px);
+      line-height: .93;
+      letter-spacing: .004em;
+      text-transform: uppercase;
+      text-wrap: balance;
+    }
+
+    #hero-content h1 .accent {
+      color: #4da8da;
+    }
+
+    #hero-content .sub {
+      margin: 24px 0 0;
+      max-width: 432px;
+      font-size: 16.5px;
+      line-height: 1.58;
+      color: rgba(238, 243, 236, .66);
+    }
+
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 34px;
+    }
+
+    .cta-primary {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: .2em;
+      background: #4da8da;
+      color: #ffffff;
+      padding: 16px 28px 14px;
+      text-decoration: none;
+      box-shadow: 0 10px 34px rgba(77, 168, 218, .22);
+      transition: background .25s ease;
+    }
+
+    .cta-primary:hover {
+      background: #7ec8e3;
+      color: #ffffff;
+    }
+
+    .cta-secondary {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: .2em;
+      background: transparent;
+      color: #eef3ec;
+      border: 1px solid rgba(238, 243, 236, .3);
+      padding: 16px 26px 14px;
+      cursor: pointer;
+      transition: border-color .25s ease, color .25s ease;
+    }
+
+    .cta-secondary:hover {
+      border-color: #4da8da;
+      color: #4da8da;
+    }
+
+    /* ─── Facility detail panel ─── */
+    #facility-panel {
+      position: absolute;
+      z-index: 16;
+      top: 44%;
+      right: 46px;
+      transform: translateY(-50%);
+      width: 344px;
+      transition: opacity .4s ease, transform .4s ease;
+      background: rgba(10, 18, 32, .9);
+      border: 1px solid rgba(200, 216, 232, .11);
+      border-top: 3px solid #4da8da;
+      padding: 24px 24px 22px;
+      backdrop-filter: blur(6px);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .panel-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .2em;
+      color: #4da8da;
+    }
+
+    .panel-label {
+      font-family: 'Anton', sans-serif;
+      font-size: 29px;
+      line-height: 1;
+      letter-spacing: .02em;
+    }
+
+    .panel-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 12.5px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(238, 243, 236, .5);
+      margin-top: 10px;
+    }
+
+    .panel-divider {
+      height: 1px;
+      background: rgba(238, 243, 236, .12);
+      margin: 18px 0;
+    }
+
+    .panel-points {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      font-size: 14.5px;
+      color: rgba(238, 243, 236, .82);
+    }
+
+    .panel-point {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .panel-point-dash {
+      display: block;
+      width: 11px;
+      height: 1.5px;
+      background: #4da8da;
+    }
+
+    .panel-link {
+      display: inline-block;
+      margin-top: 22px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .2em;
+      color: #4da8da;
+      border-bottom: 1px solid rgba(77, 168, 218, .4);
+      padding-bottom: 4px;
+      transition: color .25s ease, border-color .25s ease;
+    }
+
+    .panel-link:hover {
+      color: #7ec8e3;
+      border-color: #7ec8e3;
+    }
+
+    /* ─── Bottom selector bar ─── */
+    #selector-bar {
+      position: absolute;
+      left: 46px;
+      right: 46px;
+      bottom: 30px;
+      z-index: 18;
+      transition: opacity .9s ease;
+    }
+
+    .selector-line {
+      height: 1px;
+      background: rgba(238, 243, 236, .14);
+    }
+
+    .selector-content {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+      padding-top: 16px;
+    }
+
+    .selector-facilities {
+      display: flex;
+      align-items: flex-end;
+      gap: 38px;
+    }
+
+    .facility-btn {
+      background: none;
+      border: 0;
+      padding: 0 0 10px;
+      cursor: pointer;
+      text-align: left;
+      border-bottom: 2px solid transparent;
+      transition: border-color .3s ease;
+    }
+
+    .facility-btn-num {
+      display: block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 11.5px;
+      letter-spacing: .28em;
+      margin-bottom: 5px;
+      transition: color .3s ease;
+    }
+
+    .facility-btn-label {
+      display: block;
+      font-family: 'Anton', sans-serif;
+      font-size: 20px;
+      letter-spacing: .03em;
+      white-space: nowrap;
+      transition: color .3s ease;
+    }
+
+    .selector-actions {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      padding-bottom: 10px;
+    }
+
+    .logo-monogram {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      flex: none;
+      background: #00aeef;
+      color: #061633;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 23px;
+      letter-spacing: -.02em;
+    }
+
+    .scroll-hint {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .scroll-hint-text {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: .24em;
+      color: rgba(238, 243, 236, .4);
+    }
+
+    .scroll-hint-bar {
+      display: block;
+      width: 1px;
+      height: 26px;
+      background: #4da8da;
+      animation: rmsa-scroll 2.6s ease-in-out infinite;
+    }
+
+    /* ─── Curtain / loading screen ─── */
+    #curtain {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      background: #0a1628;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      transition: opacity .9s ease;
+    }
+
+    .curtain-bars {
+      display: flex;
+      gap: 5px;
+      transform: skewX(-14deg);
+    }
+
+    .curtain-bars span {
+      display: block;
+      width: 13px;
+      height: 52px;
+    }
+
+    .curtain-bars span:nth-child(1) {
+      background: #4da8da;
+    }
+
+    .curtain-bars span:nth-child(2) {
+      background: #eef3ec;
+      opacity: .85;
+    }
+
+    .curtain-bars span:nth-child(3) {
+      background: #eef3ec;
+      opacity: .35;
+    }
+
+    .curtain-brand {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: .42em;
+      color: rgba(238, 243, 236, .6);
+      animation: rmsa-fade .8s ease both .35s;
+    }
+
+    .curtain-line {
+      display: block;
+      width: 170px;
+      height: 1px;
+      background: #4da8da;
+      transform-origin: left;
+      animation: rmsa-line 1.5s cubic-bezier(.4, 0, .2, 1) both .2s;
+    }
+  </style>
+  <link rel="stylesheet" href="./academy.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <a class="skip-link" href="#academy-content">Skip to academy information</a>
+
+  <script src="./Rajkot Multi-Sport Academy 3D/academy-config.js"></script>
+  <script src="./Rajkot Multi-Sport Academy 3D/campus-scene.js"></script>
+
+  <div id="top" data-screen-label="3D Hero" data-component="ThreeDHero">
+
+    <!-- 3D Scene -->
+    <campus-scene id="campus" style="position:absolute; inset:0"></campus-scene>
+
+    <!-- Gradient veils -->
+    <div id="veil-top" class="veil-top"></div>
+    <div id="veil-left" class="veil-left"></div>
+    <div id="veil-bottom" class="veil-bottom"></div>
+
+    <!-- Navigation -->
+    <nav id="main-nav" aria-label="Main navigation">
+      <a href="#top" class="logo-link" data-scene-overview>
+        <span class="logo-monogram" id="nav-monogram" aria-hidden="true"></span>
+        <span class="logo-text">
+          <span class="logo-mark" id="nav-mark"></span>
+          <span class="logo-sub" id="nav-sub"></span>
+        </span>
+      </a>
+      <div class="nav-links" id="nav-links"></div>
+      <button type="button" id="menu-toggle" aria-expanded="false" aria-controls="nav-links">MENU ☰</button>
+    </nav>
+
+    <!-- Back / Overview button -->
+    <button type="button" id="back-btn"></button>
+
+    <!-- Hero text overlay -->
+    <div id="hero-content">
+      <div class="kicker">
+        <span class="kicker-dot"></span>
+        <span class="kicker-text" id="kicker-text"></span>
+      </div>
+      <h1 id="hero-headline"></h1>
+      <p class="sub" id="hero-sub"></p>
+      <div class="hero-ctas" id="hero-ctas"></div>
+      <p class="hero-supporting" id="hero-supporting"></p>
+    </div>
+
+    <!-- Facility detail panel -->
+    <div id="facility-panel">
+      <div class="panel-header">
+        <span class="panel-num" id="panel-num"></span>
+        <span class="panel-label" id="panel-label"></span>
+      </div>
+      <div class="panel-title" id="panel-title"></div>
+      <div class="panel-divider"></div>
+      <div class="panel-points" id="panel-points"></div>
+      <a class="panel-link" id="panel-link" href="#programs">VIEW PROGRAM →</a>
+    </div>
+
+    <!-- Bottom selector bar -->
+    <div id="selector-bar">
+      <div class="selector-line"></div>
+      <div class="selector-content">
+        <div class="selector-facilities" id="selector-facilities"></div>
+        <div class="selector-actions">
+          <a class="scroll-hint" href="#facility-stats">
+            <span class="scroll-hint-text">SCROLL TO EXPLORE</span>
+            <span class="scroll-hint-bar"></span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Curtain / loading screen -->
+    <div id="curtain">
+      <span class="curtain-bars"><span></span><span></span><span></span></span>
+      <span class="curtain-brand" id="curtain-brand"></span>
+      <span class="curtain-line"></span>
+    </div>
+    <div id="scene-status" role="status">Loading the interactive campus…</div>
+    <button type="button" id="explore-campus" class="tour-open">EXPLORE 3D CAMPUS ↗</button>
+    <div class="tour-guide"><strong>EXPLORE THE CAMPUS</strong><p>Tap a hotspot or choose a facility below.</p></div>
+
+  </div>
+
+  <main id="academy-content" tabindex="-1"></main>
+  <noscript><p style="padding:40px">Please enable JavaScript to explore the interactive academy and enquiry form.</p></noscript>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ═══════════════════════════════════════════════════════════
+         State
+         ═══════════════════════════════════════════════════════════ */
+      var state = {
+        sport: null,
+        reveal: false,
+        curtain: true,
+        explore: false
+      };
+
+      /* ═══════════════════════════════════════════════════════════
+         Config (from academy-config.js)
+         ═══════════════════════════════════════════════════════════ */
+      function cfg() {
+        return window.ACADEMY || { brand: {}, hero: { primaryCta: {} }, nav: [], navCta: {}, facilities: [] };
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+         DOM References
+         ═══════════════════════════════════════════════════════════ */
+      var $veilTop = document.getElementById('veil-top');
+      var $veilLeft = document.getElementById('veil-left');
+      var $veilBottom = document.getElementById('veil-bottom');
+      var $nav = document.getElementById('main-nav');
+      var $navMark = document.getElementById('nav-mark');
+      var $navSub = document.getElementById('nav-sub');
+      var $navLinks = document.getElementById('nav-links');
+      var $backBtn = document.getElementById('back-btn');
+      var $hero = document.getElementById('hero-content');
+      var $kickerText = document.getElementById('kicker-text');
+      var $headline = document.getElementById('hero-headline');
+      var $heroSub = document.getElementById('hero-sub');
+      var $heroCtas = document.getElementById('hero-ctas');
+      var $panel = document.getElementById('facility-panel');
+      var $panelNum = document.getElementById('panel-num');
+      var $panelLabel = document.getElementById('panel-label');
+      var $panelTitle = document.getElementById('panel-title');
+      var $panelPoints = document.getElementById('panel-points');
+      var $panelLink = document.getElementById('panel-link');
+      var $selectorBar = document.getElementById('selector-bar');
+      var $selectorFac = document.getElementById('selector-facilities');
+      var $curtain = document.getElementById('curtain');
+      var $curtainBrand = document.getElementById('curtain-brand');
+
+      /* ═══════════════════════════════════════════════════════════
+         Scene helper
+         ═══════════════════════════════════════════════════════════ */
+      function scene() { return document.getElementById('campus'); }
+
+      /* ═══════════════════════════════════════════════════════════
+         Actions
+         ═══════════════════════════════════════════════════════════ */
+      function pick(key) {
+        var next = state.sport === key ? null : key;
+        state.sport = next;
+        state.explore = false;
+        var s = scene();
+        if (s && s.setSport) s.setSport(next);
+        render();
+      }
+
+      // Sections lower down link into the campus model; unlike `pick` this always selects, never toggles.
+      function focusFacility(key) {
+        var known = (cfg().facilities || []).some(function (f) { return f.key === key; });
+        if (!known) return;
+        state.sport = key;
+        state.explore = false;
+        var s = scene();
+        if (s && s.setSport) s.setSport(key);
+        render();
+      }
+
+      function toOverview() {
+        state.sport = null;
+        state.explore = false;
+        var s = scene();
+        if (s && s.setSport) s.setSport(null);
+      }
+
+      function doExplore() {
+        toOverview();
+        state.explore = true;
+        render();
+      }
+
+      function doOverview() {
+        toOverview();
+        render();
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+         Render — apply state to DOM
+         ═══════════════════════════════════════════════════════════ */
+      var _navBuilt = false;
+      var _selectorBuilt = false;
+
+      function render() {
+        var C = cfg();
+        var brand = C.brand || {};
+        var hero = C.hero || { primaryCta: {} };
+        var navCta = C.navCta || {};
+        var navItems = C.nav || [];
+        var facilities = C.facilities || [];
+        var sel = state.sport;
+        var active = facilities.find(function (f) { return f.key === sel; }) || facilities[0] || { points: [] };
+        var ex = state.explore;
+        var heroShown = state.reveal && !ex && !sel;
+        var uiShown = state.reveal && !ex;
+        document.getElementById('top').classList.toggle('is-exploring', ex);
+        document.getElementById('top').classList.toggle('has-selection', Boolean(sel));
+        document.getElementById('explore-campus').hidden = !state.reveal || ex || Boolean(sel);
+
+        /* ── Static text (once) ── */
+        document.getElementById('nav-monogram').textContent = brand.monogram || '';
+        $navMark.textContent = brand.mark || '';
+        $navSub.textContent = brand.markSub || '';
+        $kickerText.textContent = brand.kicker || '';
+        $curtainBrand.textContent = brand.full || '';
+
+        $headline.replaceChildren();
+        ['headlineTop', 'headlineBottom'].forEach(function (key, index) {
+          var span = document.createElement('span');
+          span.className = index === 0 ? 'hero-title-top' : 'hero-title-bottom';
+          span.textContent = hero[key] || '';
+          $headline.appendChild(span);
+        });
+        $heroSub.textContent = hero.sub || '';
+        document.getElementById('hero-supporting').textContent = hero.supportingLine || '';
+
+        /* ── Nav links (build once) ── */
+        if (!_navBuilt && navItems.length) {
+          _navBuilt = true;
+          $navLinks.innerHTML = '';
+          navItems.forEach(function (n, i) {
+            var a = document.createElement('a');
+            a.href = n.href;
+            a.textContent = n.label;
+            a.style.color = i === 0 ? '#eef3ec' : 'rgba(238,243,236,.62)';
+            $navLinks.appendChild(a);
+          });
+          var ctaA = document.createElement('a');
+          ctaA.href = navCta.href || '#trial';
+          ctaA.textContent = navCta.label || 'BOOK TRIAL';
+          ctaA.className = 'nav-cta';
+          $navLinks.appendChild(ctaA);
+        }
+
+        /* ── Hero CTAs (build once) ── */
+        if ($heroCtas.children.length === 0 && hero.primaryCta) {
+          var pa = document.createElement('a');
+          pa.href = hero.primaryCta.href || '#trial';
+          pa.textContent = hero.primaryCta.label || '';
+          pa.className = 'cta-primary';
+          $heroCtas.appendChild(pa);
+
+          var sb = document.createElement('a');
+          sb.href = '#facilities';
+          sb.textContent = hero.secondaryCta || '';
+          sb.className = 'cta-secondary';
+          $heroCtas.appendChild(sb);
+        }
+
+        /* ── Selector (build once) ── */
+        if (!_selectorBuilt && facilities.length) {
+          _selectorBuilt = true;
+          $selectorFac.innerHTML = '';
+          facilities.forEach(function (f) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'facility-btn';
+            btn.dataset.key = f.key;
+            btn.innerHTML =
+              '<span class="facility-btn-num">' + f.num + '</span>' +
+              '<span class="facility-btn-label">' + f.label + '</span>';
+            btn.addEventListener('click', function () { pick(f.key); });
+            $selectorFac.appendChild(btn);
+          });
+        }
+
+        /* ── Update selector highlight ── */
+        var btns = $selectorFac.querySelectorAll('.facility-btn');
+        btns.forEach(function (btn) {
+          var on = sel === btn.dataset.key;
+          btn.setAttribute('aria-pressed', String(on));
+          btn.style.borderBottomColor = on ? '#4da8da' : 'rgba(200,216,232,0)';
+          btn.querySelector('.facility-btn-num').style.color = on ? '#4da8da' : 'rgba(200,216,232,.45)';
+          btn.querySelector('.facility-btn-label').style.color = on ? '#4da8da' : 'rgba(200,216,232,.7)';
+        });
+
+        /* ── Facility panel ── */
+        $panel.style.opacity = sel ? 1 : 0;
+        $panel.style.transform = 'translateY(' + (sel ? '-50%' : 'calc(-50% + 14px)') + ')';
+        $panel.style.pointerEvents = sel ? 'auto' : 'none';
+        $panel.inert = !sel;
+        $panelNum.textContent = active.num || '';
+        $panelLabel.textContent = active.label || '';
+        $panelTitle.textContent = active.title || '';
+        $panelLink.href = active.href || '#programs';
+        $panelPoints.innerHTML = '';
+        (active.points || []).forEach(function (pt) {
+          var d = document.createElement('div');
+          d.className = 'panel-point';
+          d.innerHTML = '<span class="panel-point-dash"></span>' + pt;
+          $panelPoints.appendChild(d);
+        });
+
+        /* ── Hero content visibility ── */
+        $hero.style.opacity = heroShown ? 1 : 0;
+        $hero.style.transform = 'translateY(' + (heroShown ? '0px' : '22px') + ')';
+        $hero.style.pointerEvents = heroShown ? 'auto' : 'none';
+        $hero.inert = !heroShown;
+
+        /* ── Veils ── */
+        $veilLeft.style.opacity = uiShown ? 1 : 0;
+        $veilTop.style.opacity = uiShown ? 1 : 0;
+        $veilBottom.style.opacity = uiShown ? 1 : 0;
+
+        /* ── Chrome (nav + selector bar) ── */
+        $nav.style.opacity = uiShown ? 1 : 0;
+        $nav.style.pointerEvents = uiShown ? 'auto' : 'none';
+        $nav.inert = !uiShown;
+        $selectorBar.style.opacity = state.reveal ? 1 : 0;
+        $selectorBar.style.pointerEvents = state.reveal ? 'auto' : 'none';
+        $selectorBar.inert = !state.reveal;
+
+        /* ── Back button ── */
+        var backVisible = (ex || sel) && state.reveal;
+        $backBtn.style.opacity = backVisible ? 1 : 0;
+        $backBtn.style.pointerEvents = (ex || sel) ? 'auto' : 'none';
+        $backBtn.inert = !backVisible;
+        $backBtn.style.top = ex ? '26px' : '104px';
+        $backBtn.textContent = hero.overviewCta || '← CAMPUS OVERVIEW';
+
+        /* ── Curtain ── */
+        $curtain.style.opacity = state.curtain ? 1 : 0;
+        $curtain.style.pointerEvents = state.curtain ? 'auto' : 'none';
+        $curtain.setAttribute('aria-hidden', String(!state.curtain));
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+         Event listeners
+         ═══════════════════════════════════════════════════════════ */
+      window.addEventListener('campus:select', function (e) {
+        state.sport = (e.detail && e.detail.key) || null;
+        state.explore = !state.sport && !!e.detail.explore;
+        render();
+      });
+
+      window.addEventListener('campus:introdone', function () {
+        state.reveal = true;
+        render();
+      });
+      window.addEventListener('campus:ready', function () {
+        document.getElementById('scene-status').hidden = true;
+        document.querySelectorAll('#campus button').forEach(function (button) {
+          var label = button.querySelector('[data-l]');
+          if (label) button.setAttribute('aria-label', 'Explore ' + label.textContent);
+        });
+      });
+      setTimeout(function () {
+        var status = document.getElementById('scene-status');
+        if (!status.hidden && status.dataset.state !== 'error') status.innerHTML = 'The 3D tour is taking longer to load. <a href="#facilities">Explore facilities below ↗</a>';
+      }, 15000);
+
+      window.addEventListener('campus:introstart', function () {
+        state.reveal = false;
+        state.sport = null;
+        state.explore = false;
+        state.curtain = true;
+        render();
+        // Curtain lifts after intro animation
+        setTimeout(function () { state.curtain = false; render(); }, 1400);
+      });
+
+      window.addEventListener('academy:config', function () {
+        render();
+      });
+
+      window.addEventListener('academy:focus-facility', function (e) {
+        focusFacility(e.detail && e.detail.key);
+      });
+
+      // Without a working scene there is nothing to link to, so the page-level 3D affordances stand down.
+      window.addEventListener('campus:error', function () {
+        document.documentElement.classList.add('campus-unavailable');
+      });
+
+      $backBtn.addEventListener('click', doOverview);
+      document.getElementById('explore-campus').addEventListener('click', doExplore);
+
+      /* ═══════════════════════════════════════════════════════════
+         Boot sequence
+         ═══════════════════════════════════════════════════════════ */
+
+      // Poll for config if it hasn't loaded yet
+      if (!window.ACADEMY) {
+        var tries = 0;
+        var poll = setInterval(function () {
+          if (window.ACADEMY || ++tries > 40) {
+            clearInterval(poll);
+            render();
+          }
+        }, 50);
+      }
+
+      // Initial render
+      render();
+
+      // Curtain lifts after 1.5s
+      setTimeout(function () {
+        state.curtain = false;
+        render();
+      }, 1500);
+
+      // Hero reveals after camera fly-in (~6.2s)
+      setTimeout(function () {
+        state.reveal = true;
+        render();
+      }, 6200);
+
+    })();
+  </script>
+  <script src="./Rajkot Multi-Sport Academy 3D/image-slot.js"></script>
+  <script src="./academy-content.js"></script>
+
+</body>
+
+</html>

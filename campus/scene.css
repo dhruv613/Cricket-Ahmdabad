@@ -1,0 +1,31 @@
+﻿campus-scene{display:block;overflow:hidden;background:#bacbd1}
+.campus-overlay{position:absolute;inset:0;pointer-events:none}
+.campus-hotspot{position:absolute;transform:translate(-50%,-100%);padding:0;border:0;background:none;color:#fff;cursor:pointer;pointer-events:auto;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 2px 7px #0008)}
+.campus-hotspot[hidden]{display:none!important}
+.campus-hotspot [data-l]{padding:9px 12px;background:#09233eea;border:1px solid #ffffff50;font:600 11px 'Barlow Condensed',Arial,sans-serif;letter-spacing:.16em;white-space:nowrap}
+.campus-hotspot i{width:9px;height:9px;background:#e9f6ff;border-radius:50%;margin-top:26px;box-shadow:0 0 0 5px #09233e66;position:relative}
+.campus-hotspot i:before{content:'';position:absolute;width:1px;height:27px;bottom:9px;left:4px;background:#fff9}
+.campus-hotspot:hover [data-l],.campus-hotspot.active [data-l]{background:#006ca0;border-color:#c7eaff}
+.campus-tools{position:absolute;bottom:138px;right:4%;display:flex;gap:10px;align-items:center;padding:9px 11px;z-index:3;color:#dbe7ef;background:rgba(6,20,35,.82);border:1px solid rgba(125,180,215,.26);border-radius:2px;backdrop-filter:blur(14px);box-shadow:0 18px 44px rgba(3,12,24,.42)}
+.campus-tools .tool-group{display:flex;align-items:center;gap:0}
+.campus-tools .tool-label{font:700 9px 'Barlow Condensed',Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:rgba(160,196,220,.72);margin-right:9px}
+.campus-tools button{height:34px;padding:0 14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#dbe7ef;font:600 11px 'Barlow Condensed',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:background .18s,color .18s,border-color .18s}
+.campus-tools .tool-group button+button{border-left:0}
+.campus-tools button:hover{border-color:#7fd4ff;color:#fff}
+.campus-tools button[aria-pressed=true]{background:#00aeef;border-color:#00aeef;color:#061633}
+.campus-tools .tool-primary{background:#ffd637;border-color:#ffd637;color:#061633;font-weight:700;letter-spacing:.16em}
+.campus-tools .tool-primary:hover{background:#fff;border-color:#fff;color:#061633}
+.campus-tools .tool-icons{display:flex;gap:4px;padding-left:10px;margin-left:2px;border-left:1px solid rgba(125,180,215,.22)}
+.campus-tools .tool-icon{width:32px;height:32px;padding:0;font-size:12px;line-height:1;border-color:rgba(255,255,255,.12)}
+.campus-tools .tool-icon[aria-pressed=true]{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#dbe7ef}
+.campus-tools button:focus-visible,.campus-hotspot:focus-visible{outline:2px solid #ffd637;outline-offset:3px}
+/* Night cue: appears with the floodlight sequence, then retires on its own. */
+.campus-notice{position:absolute;left:50%;top:22%;transform:translate(-50%,8px);margin:0;padding:11px 22px;z-index:4;pointer-events:none;background:rgba(6,20,35,.72);border-left:2px solid #00aeef;color:#eaf4fb;font:700 12px 'Barlow Condensed',Arial,sans-serif;letter-spacing:.3em;text-transform:uppercase;opacity:0;transition:opacity .7s ease,transform .7s ease;backdrop-filter:blur(10px)}
+.campus-notice.is-on{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){.campus-tools button,.campus-notice{transition:none}}
+.campus-drag-hint{font:500 9px Arial,sans-serif;letter-spacing:.15em;padding:0 12px}
+#top.has-selection .campus-tools{left:4%;right:auto}
+@media(max-width:680px){.campus-tools{bottom:8px;right:10px;left:10px;gap:6px;padding:7px;justify-content:center}.campus-tools button{height:30px;padding:0 9px;font-size:10px;letter-spacing:.08em}.campus-tools .tool-label{display:none}.campus-tools .tool-icon{width:28px;height:28px}.campus-tools .tool-icons{padding-left:6px}.campus-notice{top:16%;padding:9px 14px;font-size:10px;letter-spacing:.2em}.campus-hotspot [data-l]{font-size:8px;padding:6px;letter-spacing:.08em}.campus-hotspot i{margin-top:14px;width:6px;height:6px}.campus-hotspot i:before{height:15px;bottom:6px;left:3px}}
+.campus-canvas{display:block;width:100%;height:100%}
+.campus-tools{max-width:calc(100% - 32px);flex-wrap:wrap}
+@media(max-width:680px){#campus .campus-tools{left:10px!important;right:10px;justify-content:center;max-width:none}#campus .campus-tools button{flex:0 0 auto}}

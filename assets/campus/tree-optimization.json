@@ -1,0 +1,17 @@
+[
+  {
+    "material": "tree_small_02_trunk",
+    "before": 28293,
+    "after": 8000
+  },
+  {
+    "material": "tree_small_02_branches",
+    "before": 94814,
+    "after": 8000
+  },
+  {
+    "material": "tree_small_02_leaves",
+    "before": 1939380,
+    "after": 120292
+  }
+]
