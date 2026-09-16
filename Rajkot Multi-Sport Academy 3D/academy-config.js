@@ -37,30 +37,35 @@ window.ACADEMY = {
     {
       key: 'ground', num: '01', label: 'GROUND',
       title: 'Full-Size Cricket Ground',
+      size: '100 M DIAMETER',
       points: ['Night match facility', 'Tournament ready', 'Well-maintained outfield', 'Floodlights for evening play'],
       href: '#ground'
     },
     {
       key: 'nets', num: '02', label: 'NETS',
       title: 'Outdoor Practice Nets',
+      size: '5 LANES · ~45 x 38 M',
       points: ['Open-air training lanes', 'Turf and astro practice surfaces', 'Professional net setup', 'Spacious practice area'],
       href: '#outdoor'
     },
     {
       key: 'courts', num: '03', label: 'COURTS',
       title: 'Outdoor Multi-Sport Courts',
+      size: 'VOLLEYBALL 9 x 18 M · PICKLEBALL 12 x 19.2 M',
       points: ['Volleyball court', 'Two pickleball courts', 'Open-air recreation', 'Court-side seating'],
       href: '#facilities'
     },
     {
       key: 'food', num: '04', label: 'FOOD COURT',
       title: 'Food Court & Office',
+      size: 'OFFICE ~12 x 6 M',
       points: ['Player and visitor refreshment area', 'Office and reception', 'Direct access from the courts'],
       href: '#contact'
     },
     {
       key: 'arrival', num: '05', label: 'ARRIVAL',
       title: 'Entrance & Parking',
+      size: '14 BAYS · 9 M ROAD FRONTAGE',
       points: ['Main entrance from the 9 m road', 'Open tapered driveway and parking', 'Academy access beside the food court and office'],
       href: '#contact'
     }

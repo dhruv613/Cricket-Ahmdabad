@@ -1,17 +1,24 @@
 import * as T from 'three';
+import { SITE_LAYOUT as L } from './site-layout.js';
 
 // Animate GLB joints on CPU, then draw all athletes through shared GPU instances.
 export function createPlayers(scene,gltf){
-  // The approved Vastral plan places the cricket square at (0, 50).
-  // These positions are deliberately tied to that wicket rather than the former concept layout.
-  const placements=[
-    [0,39.8,'Batting',0],[1.8,59.6,'Fielding',Math.PI],[0,64,'Bowling',Math.PI],[0,36.2,'Fielding',0],
-    [-11,40,'Fielding',.5],[13,40,'Fielding',-.5],[-25,48,'Fielding',1.5],[27,51,'Fielding',-1.5],
-    [-20,66,'Fielding',2.5],[20,68,'Fielding',-2.5],[-39,31,'Fielding',.7],[41,31,'Fielding',-.7],
-    // Training nets stay clear: all animated people belong to the match on the
-    // cricket ground, including these deep boundary fielders.
-    [-38,61,'Fielding',.35],[38,63,'Fielding',-.35],[-14,74,'Run',Math.PI/2],[18,74,'Run',-Math.PI/2]
+  // Positions are relative to the wicket and then offset onto the ground from SITE_LAYOUT, so the
+  // match always sits on the square wherever the plan puts it. Hard-coding them is what stranded
+  // the whole side 50 m north when the layout origin moved to the ground centre.
+  const G=L.cricketGround,P=L.cricketPitch;
+  // Everyone stays inside 44 m, comfortably within the 50 m rope.
+  const nearWicket=[
+    [0,-10.0,'Batting',0],[.9,10.2,'Fielding',Math.PI],[0,15,'Bowling',Math.PI],[0,-14.2,'Fielding',0]
   ];
+  const fielders=[
+    [-4.5,-15,.5],[5.5,-16,-.5],[-20,-6,1.5],[-26,10,-1.5],[-12,17,2.5],[12,18,-2.5],
+    [22,-5,.7],[27,12,-.7],[-34,-24,.35],[34,-26,-.35]
+  ].map(([x,z,yaw])=>[x,z,'Fielding',yaw]);
+  // Two outfielders work the deep, using the running clip.
+  const chasing=[[-30,31,'Run',Math.PI/2],[31,33,'Run',-Math.PI/2]];
+  const placements=[...nearWicket,...fielders,...chasing]
+    .map(([x,z,clip,yaw])=>[P.x+x,(clip==='Bowling'?G.z:P.z)+z,clip,yaw]);
   const actors=[],batches=new Map();let elapsed=0,shown=true;
   for(const [x,z,clip,yaw] of placements){
     const root=gltf.scene.clone(true);root.position.set(x,.17,z);root.rotation.y=yaw;

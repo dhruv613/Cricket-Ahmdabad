@@ -144,8 +144,14 @@ export async function mountCampus(host,{signal}={}){
   function viewport(){
     const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
     // Reserve the panel on desktop. The mobile layout places it above the canvas.
-    const panel=document.getElementById('facility-panel'),reserve=selected&&!mobile()?Math.min(w*.43,(panel?.offsetWidth||320)+w*.06):0;
-    const top=mobile()?24:105,bottom=mobile()?88:185;
+    // The detail board docks along the bottom now, so it takes height beneath the subject rather
+    // than a column beside it: reserve vertically and leave the full width to the model.
+    const panel=document.getElementById('facility-panel'),reserve=0;
+    // Only part of the board's height needs clearing: it is semi-transparent and sits in the
+    // bottom-left corner, so reserving its full height just pushed the camera back and shrank the
+    // subject. Reserve roughly half and let the rest overlap harmlessly.
+    const panelH=selected?Math.min(h*.14,(panel?.offsetHeight||0)*.45):0;
+    const top=mobile()?24:105,bottom=(mobile()?88:185)+panelH;
     return {w,h,reserve,usableW:Math.max(150,w-reserve-48),usableH:Math.max(120,h-top-bottom),offsetX:reserve/2,offsetY:(bottom-top)/2};
   }
   function projection(){
@@ -165,7 +171,10 @@ export async function mountCampus(host,{signal}={}){
     }
     return {position:center.clone().addScaledVector(direction,distance*1.06),target:center,offset:{x:v.offsetX,y:v.offsetY}};
   }
-  function currentBounds(){return mode==='pitch'?{min:[-6,0,34],max:[6,3,75],direction:[.65,.65,-1]}:selected?FACILITIES[selected]:mode==='aerial'?{...CAMPUS_BOUNDS,direction:[.18,1.35,-.62]}:CAMPUS_BOUNDS;}
+  // Ground view frames the wicket itself, derived from the layout - the old literal bounds still
+  // pointed at z=50, where the square sat before the origin moved to the ground centre.
+  const PITCH=L.cricketPitch;
+  function currentBounds(){return mode==='pitch'?{min:[PITCH.x-8,0,PITCH.z-16],max:[PITCH.x+8,3,PITCH.z+25],direction:[.65,.65,-1]}:selected?FACILITIES[selected]:mode==='aerial'?{...CAMPUS_BOUNDS,direction:[.18,1.35,-.62]}:CAMPUS_BOUNDS;}
   function currentView(){
     const view=fitted(currentBounds());
     if(isHero()){

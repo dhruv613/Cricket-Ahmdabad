@@ -359,16 +359,22 @@
     #facility-panel {
       position: absolute;
       z-index: 16;
-      top: 44%;
-      right: 46px;
-      transform: translateY(-50%);
-      width: 344px;
+      top: auto;
+      bottom: 200px;
+      left: 4%;
+      right: auto;
+      transform: none;
+      width: min(560px, 52vw);
       transition: opacity .4s ease, transform .4s ease;
-      background: rgba(10, 18, 32, .9);
-      border: 1px solid rgba(200, 216, 232, .11);
-      border-top: 3px solid #4da8da;
-      padding: 24px 24px 22px;
-      backdrop-filter: blur(6px);
+      background: rgba(8, 16, 30, .52);
+      border: 1px solid rgba(200, 216, 232, .16);
+      border-top: 0;
+      border-left: 2px solid #4da8da;
+      padding: 13px 17px 12px;
+      box-shadow: 0 16px 38px rgba(3, 10, 22, .4);
+      /* No backdrop-filter here: combined with translateY(-50%) Chromium samples the backdrop in
+         the untransformed box, painting a pale panel-width smear below the panel. The background is
+         near-opaque anyway, so the blur bought nothing. */
     }
 
     .panel-header {
@@ -380,40 +386,52 @@
     .panel-num {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 10px;
       letter-spacing: .2em;
       color: #4da8da;
     }
 
     .panel-label {
-      font-family: 'Anton', sans-serif;
-      font-size: 29px;
-      line-height: 1;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
       letter-spacing: .02em;
+      color: #eef3ec;
+      text-transform: uppercase;
     }
 
     .panel-title {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 600;
-      font-size: 12.5px;
-      letter-spacing: .22em;
+      font-size: 9.5px;
+      letter-spacing: .17em;
+      margin-top: 4px;
+      color: rgba(200, 216, 232, .72);
       text-transform: uppercase;
-      color: rgba(238, 243, 236, .5);
-      margin-top: 10px;
+    }
+
+    .panel-size {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: .14em;
+      margin-top: 5px;
+      color: #4da8da;
+      text-transform: uppercase;
     }
 
     .panel-divider {
       height: 1px;
-      background: rgba(238, 243, 236, .12);
-      margin: 18px 0;
+      margin: 9px 0;
+      background: rgba(200, 216, 232, .16);
     }
 
     .panel-points {
-      display: flex;
-      flex-direction: column;
-      gap: 11px;
-      font-size: 14.5px;
-      color: rgba(238, 243, 236, .82);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px 18px;
+      font-size: 11.5px;
+      color: rgba(226, 235, 243, .9);
     }
 
     .panel-point {
@@ -665,6 +683,7 @@
         <span class="panel-label" id="panel-label"></span>
       </div>
       <div class="panel-title" id="panel-title"></div>
+      <div class="panel-size" id="panel-size"></div>
       <div class="panel-divider"></div>
       <div class="panel-points" id="panel-points"></div>
       <a class="panel-link" id="panel-link" href="#programs">VIEW PROGRAM →</a>
@@ -916,6 +935,9 @@
         $panelNum.textContent = active.num || '';
         $panelLabel.textContent = active.label || '';
         $panelTitle.textContent = active.title || '';
+        var sizeEl = document.getElementById('panel-size');
+        sizeEl.textContent = active.size || '';
+        sizeEl.hidden = !active.size;
         $panelLink.href = active.href || '#programs';
         $panelPoints.innerHTML = '';
         (active.points || []).forEach(function (pt) {
