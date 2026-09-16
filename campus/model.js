@@ -81,9 +81,67 @@ export async function buildCampus(scene,M,report){
     for(let step=0;step<2;step++)b.box(Math.min(w,4)+step*.45,.12*(2-step),.6,'concrete',x,.06*(2-step),z+d/2+.9+step*.6);
     if(label)sign(label,Math.min(w*.8,14),.6,x,h-.05,z+d/2+.5);
   }
+  function surroundings(){
+    const [rw,re]=L.road.north,rd=L.road.width;
+    // Road alignment drives the village, so it follows the real frontage angle rather than sitting
+    // in a level band. LAYOUT_LOCKED applies to the plot; nothing here may enter it.
+    const roadZ=x=>rw[1]+(x-rw[0])*(re[1]-rw[1])/(re[0]-rw[0]);
+    const bx=L.siteBoundary.map(q=>q[0]),bz=L.siteBoundary.map(q=>q[1]);
+    const site={minX:Math.min(...bx)-14,maxX:Math.max(...bx)+14,minZ:Math.min(...bz)-14,maxZ:Math.max(...bz)+14};
+    // A plot is only drawn if its whole rectangle clears the plot, not just its centre.
+    const clearOfSite=(x,z,w,d)=>
+      x+w/2<site.minX||x-w/2>site.maxX||z+d/2<site.minZ||z-d/2>site.maxZ;
+
+    // Fallow and irrigated plots divided by raised earth bunds.
+    function plot(x,z,w,d){
+      if(!clearOfSite(x,z,w,d))return;
+      const crop=rng();
+      surface(w,d,crop<.34?'astro':crop<.56?'soil':'lawn',x,z,.015);
+      for(const side of [-1,1]){b.box(w,.3,.7,'soil',x,.15,z+side*d/2);b.box(.7,.3,d,'soil',x+side*w/2,.15,z);}
+    }
+    // North fields start well clear of the boundary so no crop reads as part of the campus.
+    for(let i=0;i<4;i++)for(let j=0;j<7;j++)
+      plot(-330+j*96+(rng()-.5)*20,168+i*88+(rng()-.5)*18,102+rng()*40,86+rng()*34);
+    for(const dir of [-1,1])for(let i=0;i<3;i++)for(let j=0;j<5;j++)
+      plot(dir*(165+i*94)+(rng()-.5)*20,-120+j*80+(rng()-.5)*18,100+rng()*38,84+rng()*30);
+
+    // Village: flat-roofed masonry with parapets, roof tanks and sheet lean-tos, clustered on
+    // irregular lanes along the far side of the road.
+    const villageWalls=['render','renderWarm','renderPale','slab','renderBlue','render'];
+    function house(x,z,w,d,rot,front){
+      const storeys=rng()<.2?3:rng()<.55?2:1,h=3.1*storeys,wall=villageWalls[Math.floor(rng()*6)];
+      b.box(w,h,d,wall,x,h/2,z,[0,rot,0]);
+      const roof=rng()<.35?'renderPale':rng()<.6?'slab':'render';
+      b.box(w+.4,.3,d+.4,roof,x,h+.15,z,[0,rot,0]);
+      b.box(w+.5,.46,d+.5,roof,x,h+.5,z,[0,rot,0]);
+      // Only the road-facing row is close enough for openings to be worth the geometry.
+      if(front)for(let i=-1;i<=1;i++)if(rng()<.6)
+        b.box(.9,1.1,.1,'darkMetal',x+Math.cos(rot)*i*(w*.3),1.5,z-Math.sin(rot)*i*(w*.3)+Math.cos(rot)*(d/2+.03),[0,rot,0],false);
+      if(rng()<.45){const t=.5+rng()*.3;b.cylinder(t,t,t*1.5,rng()<.45?'darkMetal':'blue',x+w*.28,h+.75+t*.75,z+d*.24,[],8);}
+      if(rng()<.38)b.box(w*.7,.12,d*.55,rng()<.5?'tinRust':'tin',x-w*.2,h*.42,z+d*.8,[0,rot,.07]);
+    }
+    for(let block=0;block<22;block++){
+      const blockX=-300+block*27+(rng()-.5)*9,rows=3+Math.floor(rng()*5);
+      for(let row=0;row<rows;row++){
+        const span=2+Math.floor(rng()*3);
+        for(let i=0;i<span;i++){
+          if(rng()<.18)continue;
+          const x=blockX+i*11+(rng()-.5)*4;
+          // Offset south from this point's own road edge, so the village tracks the road slope.
+          const z=roadZ(x)-rd-9-row*16.5+(rng()-.5)*5;
+          house(x,z,7+rng()*5,6+rng()*4,(rng()-.5)*.5,row===0);
+        }
+      }
+    }
+    // Compound walls front the village onto the road.
+    for(let i=0;i<44;i++){
+      const x=-300+i*13+(rng()-.5)*3;
+      b.box(9+rng()*3,2.3+rng()*.7,.3,'renderWarm',x,1.3,roadZ(x)-rd-3.2-rng()*.8);
+    }
+  }
   function practiceArea(){
     const a=L.practiceArea,e=extent(a.polygon),c=centroid(a.polygon);
-    polygon(a.polygon,'paving',.05);
+    polygon(a.polygon,'training',.05);
     const w=e.maxX-e.minX,d=e.maxZ-e.minZ,inset=a.netsInset;
     const laneW=(w-inset*2)/a.lanes,laneD=d-inset*2;
     for(let lane=0;lane<a.lanes;lane++){
@@ -106,7 +164,7 @@ export async function buildCampus(scene,M,report){
   }
 
   report('Tracing the Vastral site boundary and frontage');
-  surface(460,460,'soil',0,-30,-.15);
+  surface(1400,1400,'soil',0,-40,-.15);
   // Pink circulation zone = the whole plot; green frontage and yellow zones overlay it.
   polygon(L.siteBoundary,'apron',0);
   polygon(L.frontLandscape,'lawn',.03);
@@ -178,6 +236,25 @@ export async function buildCampus(scene,M,report){
     b.box(bs.width,.024,.1,'white',bx,.11,bz+bs.length/2,[0,-.24,0],false);
     b.box(.1,.024,bs.length,'white',bx-bs.width/2,.11,bz,[0,-.24,0],false);
   }
+  // Cars occupy the drawn bays only. Geometry comes from L.parkingBays, so nothing is invented.
+  {
+    const bodyCols=['navy','slab','blue','renderBlue'];
+    bays.forEach(([bx,bz],i)=>{
+      if(i%2)return;                                    // leave alternate bays free
+      const rot=-.24+PI/2,paint=bodyCols[i%bodyCols.length];
+      b.box(1.75,.62,4.1,paint,bx,.66,bz,[0,rot,0]);
+      b.box(1.6,.52,2.1,paint,bx,1.18,bz,[0,rot,0]);
+      b.box(1.5,.42,.06,'glass',bx+Math.cos(rot)*1.05,1.2,bz-Math.sin(rot)*1.05,[0,rot,0],false);
+      for(const sx of [-1,1])for(const sz of [-1,1])
+        b.cylinder(.32,.32,.2,'rubber',bx+Math.cos(rot)*sz*1.35-Math.sin(rot)*sx*.8,.32,
+                   bz-Math.sin(rot)*sz*1.35-Math.cos(rot)*sx*.8,[0,0,PI/2],10);
+    });
+  }
+  // Pedestrian route along the inner edge of the wedge, from the road to the academy entrance.
+  {
+    const poly=L.parkingPolygon,walk=[[poly[0][0],poly[0][1]],[poly[3][0],poly[3][1]]];
+    strip(walk[1],walk[0],2.8,'concrete',.1,3);
+  }
   // Driveway from the road opening, through the wedge, up to the internal entrance.
   const entry=L.internalEntrance;
   strip([main.x,main.z],[entry.x,entry.z],7.5,'asphalt',.1);
@@ -201,6 +278,9 @@ export async function buildCampus(scene,M,report){
   // Apron and kerb returns carrying the drive across the frontage onto the carriageway.
   strip([main.x,main.z],[main.x+1,main.z-9],main.width+2,'asphalt',.07);
   for(const side of [-1,1])beam([main.x+side*(main.width/2+.8),.12,main.z],[main.x+side*(main.width/2+3.6),.12,main.z-9],.12,'concrete');
+
+  report('Placing the surrounding village and farmland');
+  surroundings();
 
   report('Placing the drawn tree rows');
   for(const [group,scale] of [['north',.85],['west',.78],['east',.78],['wedge',.72],['front',.8],['feature',.9]])

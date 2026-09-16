@@ -1,7 +1,7 @@
 ﻿(function () {
   const source=document.currentScript?.src||document.querySelector('script[src*="campus-scene.js"]')?.src||new URL('./campus-scene.js',location.href).href;
-  const entry=new URL('../campus/entry.js?v=32',source).href;
-  if(!document.querySelector('link[data-campus-style]')){const style=document.createElement('link');style.rel='stylesheet';style.href=new URL('../campus/scene.css?v=31',source).href;style.dataset.campusStyle='';document.head.append(style);}
+  const entry=new URL('../campus/entry.js?v=35',source).href;
+  if(!document.querySelector('link[data-campus-style]')){const style=document.createElement('link');style.rel='stylesheet';style.href=new URL('../campus/scene.css?v=34',source).href;style.dataset.campusStyle='';document.head.append(style);}
   class CampusScene extends HTMLElement {
     connectedCallback(){
       if(this._loading||this._api)return;

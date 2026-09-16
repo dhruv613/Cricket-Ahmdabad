@@ -41,7 +41,9 @@ export async function loadMaterials(renderer, report, {compact=false}={}) {
     // Arrival wedge paving: a made light surface, so the zone never reads as a black slab.
     paving:new T.MeshStandardMaterial({color:0xa9a396,roughness:.94,normalMap:maps['concrete-normal'],normalScale:new T.Vector2(.12,.12)}),
     // Open circulation apron: the drawing's pink zone, kept distinct from lawn and paving.
-    apron:new T.MeshStandardMaterial({color:0xb99b8f,roughness:.96,normalMap:maps['concrete-normal'],normalScale:new T.Vector2(.1,.1)}),
+    apron:new T.MeshStandardMaterial({color:0xb0a396,roughness:1,normalMap:maps['concrete-normal'],normalScale:new T.Vector2(.16,.16)}),
+    // Training surface for the practice-area polygon, so the whole facility reads as one zone.
+    training:new T.MeshStandardMaterial({color:0x9a8f6d,roughness:1,normalMap:maps['concrete-normal'],normalScale:new T.Vector2(.2,.2)}),
     // Two court colours so the volleyball and pickleball blocks are not read as one surface.
     courtTeal:new T.MeshStandardMaterial({color:0x2e7f8c,roughness:.9}),
     courtBlue:new T.MeshStandardMaterial({color:0x2668a8,roughness:.9}),
@@ -85,7 +87,7 @@ export async function loadMaterials(renderer, report, {compact=false}={}) {
     for(let i=0;i<70;i++){ctx.strokeStyle='rgba(74,61,36,.17)';ctx.lineWidth=.5;const x=rng()*w,y=rng()*h;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+rng()*12,y+rng()*7);ctx.lineTo(x+20*rng(),y+10*rng());ctx.stroke();}
   });
   M.pitch=new T.MeshStandardMaterial({map:pitch,roughness:1,bumpMap:pitch,bumpScale:.018});
-  M.astro=new T.MeshStandardMaterial({map:turf,color:0x93a074,roughness:.96});
+  M.astro=new T.MeshStandardMaterial({map:turf,color:0x8d9c6e,roughness:1});
   M.square=new T.MeshStandardMaterial({map:turf,color:0xb5bba1,roughness:1});
   // Broad, world-space variation breaks texture tiling without changing the mowing lines.
   for(const material of [M.lawn,M.turf,M.square]){

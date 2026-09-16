@@ -200,6 +200,33 @@ export async function mountCampus(host,{signal}={}){
     hero?.classList.remove('is-plan-validation');
     if(camera===planCamera){switchCamera(perspectiveCamera,false);players?.setVisible(true);}
   }
+  // Stops follow the arrival sequence on the drawing: road, wedge, amenities, courts, practice,
+  // ground, then a final overview. Each entry is an existing camera target, never a new transform.
+  const TOUR=[
+    {key:'arrival',hold:3200},{key:'food',hold:3000},{key:'courts',hold:3000},
+    {key:'nets',hold:3200},{key:'ground',hold:3600},{key:null,hold:4200}
+  ];
+  let tourStep=-1,tourUntil=0;
+  function tourStop(){
+    if(tourStep<0||tourStep>=TOUR.length){stopTour();return;}
+    const stop=TOUR[tourStep];
+    selected=stop.key&&FACILITIES[stop.key]?stop.key:null;
+    mode=selected?'facility':'overview';
+    emit('select',{key:selected});
+    move(currentView());
+    tourUntil=performance.now()+stop.hold+1100;
+    dirty=3;wake();
+  }
+  function startTour(){
+    finishTween();leavePlanView();driftStopped=true;tourStep=0;
+    toolbar.querySelector('[data-action="tour"]')?.setAttribute('aria-pressed','true');
+    tourStop();
+  }
+  function stopTour(){
+    if(tourStep<0)return;
+    tourStep=-1;tourUntil=0;
+    toolbar.querySelector('[data-action="tour"]')?.setAttribute('aria-pressed','false');
+  }
   function drifting(){return isHero()&&ready&&animate&&!reducedQuery.matches&&!driftStopped&&!selected&&mode==='overview'&&!tween&&!!driftBase;}
   function move(view,intro=false){
     if(disposed)return;
@@ -226,6 +253,7 @@ export async function mountCampus(host,{signal}={}){
       applyTimeOfDay();
     }
     if(noticeUntil&&now>noticeUntil){noticeUntil=0;notice.classList.remove('is-on');}
+    if(tourStep>=0&&now>tourUntil){tourStep++;tourStep<TOUR.length?tourStop():stopTour();}
     controls.dampingFactor=1-Math.exp(-14*(dt||1/60));
     // The validation view must stay geometrically fixed. OrbitControls retains
     // spherical state from the perspective camera, so never update it here.
@@ -248,7 +276,7 @@ export async function mountCampus(host,{signal}={}){
   const intersection=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;lastTime=0;if(visible){dirty=3;wake();}else{cancelAnimationFrame(raf);raf=0;}},{rootMargin:'0px'});intersection.observe(host);
   const visibility=()=>{lastTime=0;if(!document.hidden){dirty=3;wake();}else{cancelAnimationFrame(raf);raf=0;}};document.addEventListener('visibilitychange',visibility);
   const motionChange=()=>setMotion(!reducedQuery.matches);reducedQuery.addEventListener('change',motionChange);
-  const pointerStart=()=>{if(mode==='plan')return;driftStopped=true;finishTween();dirty=4;wake();};canvas.addEventListener('pointerdown',pointerStart);controls.addEventListener('change',()=>{if(mode==='plan')return;dirty=3;wake();});
+  const pointerStart=()=>{if(mode==='plan')return;stopTour();driftStopped=true;finishTween();dirty=4;wake();};canvas.addEventListener('pointerdown',pointerStart);controls.addEventListener('change',()=>{if(mode==='plan')return;dirty=3;wake();});
   function setMotion(value){animate=value;const b=toolbar.querySelector('[data-action="motion"]');b.setAttribute('aria-pressed',String(animate));b.textContent=animate?'❚❚':'▶';b.setAttribute('aria-label',animate?'Pause motion':'Play motion');lastTime=0;dirty=3;wake();}
   const blend=(a,b,t)=>a+(b-a)*t;
   function applyTimeOfDay(){
@@ -289,15 +317,15 @@ export async function mountCampus(host,{signal}={}){
     return {left:Math.min(...points.map(p=>p[0])),right:Math.max(...points.map(p=>p[0])),top:Math.min(...points.map(p=>p[1])),bottom:Math.max(...points.map(p=>p[1])),available:viewport()};
   }
   const api={
-    setSport(key){finishTween();leavePlanView();selected=FACILITIES[key]?key:null;mode=selected?'facility':'overview';driftStopped=!!selected;driftTime=0;move(currentView());markView();},
+    setSport(key){stopTour();finishTween();leavePlanView();selected=FACILITIES[key]?key:null;mode=selected?'facility':'overview';driftStopped=!!selected;driftTime=0;move(currentView());markView();},
     replayIntro(){finishTween();leavePlanView();selected=null;mode='overview';driftStopped=false;driftTime=0;emit('select',{key:null});emit('introstart');const view=currentView();camera.position.copy(view.position).multiplyScalar(1.13);move(view,true);markView();},
     setPreset(){resize();},setTimeOfDay,
     getDiagnostics(){return {ready,asset:'academy-campus.glb',moving:!!tween,cameraType:camera.type,cameraDrifting:drifting(),heroView:isHero(),selected,mode,timeOfDay,nightMix,nightTarget,sunIntensity:sun.intensity,hemiIntensity:hemi.intensity,floodlights:nightLights.filter(l=>l.intensity>0).length,players:players?.count||0,animationEnabled:animate,playerPose:players?.getPose(),animationTime:players?.elapsed||0,frames:frameCount,visible,trees:model?.userData.treeCount,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,geometryCount:renderer.info.memory.geometries,textureCount:renderer.info.memory.textures,pixelRatio,frameMs,loadMs,camera:camera.position.toArray(),target:controls.target.toArray(),size:[host.clientWidth,host.clientHeight],three:T.REVISION,focusScreen:focusScreen()};},dispose
   };
   toolbar.addEventListener('click',e=>{
     // Every branch below can change `mode`, so the pressed state is refreshed after the fact.
-    const action=e.target.closest('button')?.dataset.action;if(!action||!ready)return;if(!['motion','day','night','tour'].includes(action))driftStopped=true;
-    if(action==='tour'){api.replayIntro();return;}
+    const action=e.target.closest('button')?.dataset.action;if(!action||!ready)return;if(!['motion','day','night','tour'].includes(action)){driftStopped=true;stopTour();}
+    if(action==='tour'){tourStep>=0?stopTour():startTour();return;}
     if(action==='compare'){
       const btn=toolbar.querySelector('[data-action="compare"]');
       const on=btn.getAttribute('aria-pressed')!=='true';
