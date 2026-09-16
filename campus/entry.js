@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from '../vendor/meshoptimizer/meshopt_decoder.module.js';
 import { FACILITIES, CAMPUS_BOUNDS } from './facilities.js';
+import { SITE_LAYOUT as L } from './site-layout.js';
 import { createPlayers } from './players.js';
 
 export async function mountCampus(host,{signal}={}){
@@ -24,8 +25,14 @@ export async function mountCampus(host,{signal}={}){
   const scene=new T.Scene();scene.background=new T.Color(0xc6cfcb);scene.fog=new T.Fog(0xcbc9b8,500,1400);
   const DAY_SKY=new T.Color(0xc6cfcb),NIGHT_SKY=new T.Color(0x101b2a),DAY_HAZE=new T.Color(0xcbc9b8),NIGHT_HAZE=new T.Color(0x16202e);
   let nightMix=0,nightTarget=0,nightFrom=0,nightStart=0;const NIGHT_MS=1900;
+  const DAY_BOUNCE=new T.Color(0xa08a5e),NIGHT_BOUNCE=new T.Color(0x4a5568);
   const lampMaterials=new Set(),interiorMaterials=new Set();
-  const camera=new T.PerspectiveCamera(40,1,.2,2400);
+  let camera=new T.PerspectiveCamera(40,1,.2,2400);
+  const perspectiveCamera=camera;
+  // The validation camera is intentionally orthographic: it preserves the
+  // plan's west-to-east facility order with north at the top of the screen.
+  const planCamera=new T.OrthographicCamera(-1,1,1,-1,.2,2400);
+  planCamera.up.set(0,0,1);
   const controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.dampingFactor=.1;controls.enableZoom=false;controls.enablePan=false;controls.minDistance=8;controls.maxDistance=1100;controls.minPolarAngle=.12;controls.maxPolarAngle=Math.PI*.475;
   controls.touches.ONE=T.TOUCH.ROTATE;controls.touches.TWO=T.TOUCH.DOLLY_ROTATE;canvas.style.touchAction='pan-y';
   const hemi=new T.HemisphereLight(0xdfe7f2,0xa08a5e,1.95);scene.add(hemi);
@@ -39,14 +46,55 @@ export async function mountCampus(host,{signal}={}){
     light.position.set(...position);light.target.position.set(...target);
     light.userData={peak,delay};scene.add(light.target);nightLights.push(light);
   }
-  [[-53,-45],[53,-45],[-53,45],[53,45]].forEach(([x,z],i)=>nightLight(0xffefd9,12500,190,.92,[x,29,z],[x*.28,0,z*.28],.08+i*.11));
-  // Aimed low across the entrance elevation; pointing it into the hall washed out the roof.
-  nightLight(0xdbe9ff,2400,70,.8,[-91,9,-54],[-91,3,-66],.58);
-  for(const z of [-50,-7,42])nightLight(0xffeccd,2400,72,.92,[-75,12,z],[-91,0,z],.64+(z+50)/460);
-  nightLight(0xffe6c4,3200,85,.95,[79,11,-2],[87,0,-2],.84);
+  // Masts stand at the ground's four corners and each washes only its own quadrant, so no two
+  // beams converge on the centre and no pool reaches past the boundary. Cone angle, range and
+  // penumbra are all sized to the 50 m ground rather than left at viewer defaults.
+  const G=L.cricketGround;
+  L.masts.forEach(([x,z],i)=>nightLight(0xffefd4,9200,118,.46,[x,28,z],
+    [G.x+Math.sign(x)*G.radius*.42,0,G.z+Math.sign(z-G.z)*G.radius*.42],.06+i*.1));
+  // Practice nets: two low masts along the lane axis.
+  const pa=L.practiceArea.polygon,paX=pa.map(q=>q[0]),paZ=pa.map(q=>q[1]);
+  const A={x:(Math.min(...paX)+Math.max(...paX))/2,z:(Math.min(...paZ)+Math.max(...paZ))/2,
+           length:Math.max(...paZ)-Math.min(...paZ)};
+  for(const [dz,delay] of [[-1,.5],[1,.56]])
+    nightLight(0xffeccd,2100,52,.42,[A.x,15,A.z+dz*(A.length/2+5)],[A.x,0,A.z+dz*A.length*.18],delay);
+  // Courts, sized to span the volleyball and pickleball blocks together.
+  nightLight(0xe6f0ff,2300,54,.46,[(L.volleyball.x+L.pickleball.x)/2,15,L.volleyball.z-13],
+    [(L.volleyball.x+L.pickleball.x)/2,0,L.volleyball.z],.62);
+  // Arrival wedge: two column lights on the driveway, aimed down onto the paving.
+  {
+    const poly=L.parkingPolygon,cx=poly.reduce((a,q)=>a+q[0],0)/poly.length,cz=poly.reduce((a,q)=>a+q[1],0)/poly.length;
+    for(const [dz,delay] of [[14,.7],[-14,.76]])
+      nightLight(0xffe6c4,1500,44,.44,[cx,12,cz+dz],[cx,0,cz+dz*.3],delay);
+  }
+  // Facility entrances: food court / office frontage and the main entrance threshold.
+  nightLight(0xffe6c4,1300,38,.44,[L.foodCourt.x,11,L.foodCourt.z-9],[L.foodCourt.x,0,L.foodCourt.z-2],.82);
+  nightLight(0xffe6c4,1200,36,.42,[L.mainEntrance.x,10,L.mainEntrance.z+7],[L.mainEntrance.x,0,L.mainEntrance.z],.88);
+  // Soft site-wide fill so nothing in the lower campus drops to black between pools.
+  nightLight(0xbcd2e8,26000,360,.62,[G.x,190,G.z-52],[G.x,0,G.z-46],.3);
   const overlay=document.createElement('div');overlay.className='campus-overlay';host.append(overlay);
+  const devPlan=/(?:\?|&)plan=1/.test(location.search);
+  let planMesh=null,planOpacity=.5;
+  function planOverlay(on){
+    if(!on){if(planMesh)planMesh.visible=false;dirty=3;wake();return;}
+    if(!planMesh){
+      // Extent and centre come from tools/extract-plan.py, which rendered the sheet over a known
+      // world window; east is -X, so the texture is mirrored to sit the right way round.
+      const url=new URL('../assets/campus/plan-reference.png',import.meta.url).href;
+      const tex=new T.TextureLoader().load(url,()=>{dirty=3;wake();});
+      tex.colorSpace=T.SRGBColorSpace;tex.wrapS=tex.wrapT=T.RepeatWrapping;
+      // Image U runs west->east and V runs south->north; the world has east at -X and the
+      // rotated plane sends +V to -Z, so both axes are inverted to land the sheet square.
+      tex.repeat.set(-1,-1);tex.offset.set(1,1);
+      const geo=new T.PlaneGeometry(260,220);geo.rotateX(-Math.PI/2);
+      planMesh=new T.Mesh(geo,new T.MeshBasicMaterial({map:tex,transparent:true,opacity:planOpacity,depthWrite:false,depthTest:false}));
+      planMesh.position.set(10,6,-35);planMesh.renderOrder=999;planMesh.frustumCulled=false;scene.add(planMesh);
+    }
+    planMesh.visible=true;planMesh.material.opacity=planOpacity;dirty=3;wake();
+  }
+  const tagOffsets={ground:[0,0],nets:[-8,-10],courts:[0,15],food:[-76,14],arrival:[72,20]};
   const tags=Object.entries(FACILITIES).map(([key,f])=>{
-    const button=document.createElement('button');button.type='button';button.className='campus-hotspot';button.dataset.facility=key;button.setAttribute('aria-label','Explore '+f.label.toLowerCase());button.innerHTML='<span data-l>'+f.label+'</span><i></i>';
+    const button=document.createElement('button');button.type='button';button.className='campus-hotspot hotspot-'+key;button.dataset.facility=key;button.setAttribute('aria-label','Explore '+f.label.toLowerCase());button.innerHTML='<span data-l>'+f.label+'</span><i></i>';
     button.addEventListener('pointerenter',()=>{driftStopped=true;});button.addEventListener('focus',()=>{driftStopped=true;});
     button.addEventListener('click',()=>{api.setSport(key);emit('select',{key});});overlay.append(button);return {button,point:new T.Vector3(...f.anchor),key};
   });
@@ -54,11 +102,13 @@ export async function mountCampus(host,{signal}={}){
   toolbar.innerHTML=
     '<span class="tool-group"><span class="tool-label">View</span>'
     +'<button type="button" data-action="aerial">Aerial</button>'
-    +'<button type="button" data-action="pitch">Ground</button></span>'
+    +'<button type="button" data-action="pitch">Ground</button>'
+    +'<button type="button" data-action="plan">Plan view</button></span>'
     +'<span class="tool-group"><span class="tool-label">Time</span>'
     +'<button type="button" data-action="day" aria-pressed="true">Day</button>'
     +'<button type="button" data-action="night" aria-pressed="false">Night</button></span>'
     +'<button type="button" class="tool-primary" data-action="tour">Play campus tour</button>'
+    +(devPlan?'<span class="tool-group"><span class="tool-label">Dev</span><button type="button" data-action="compare" aria-pressed="false">Compare with plan</button><button type="button" class="tool-icon" data-action="opacity" aria-label="Cycle overlay opacity">%</button></span>':'')
     +'<span class="tool-icons">'
     +'<button type="button" class="tool-icon" data-action="motion" aria-pressed="'+animate+'" aria-label="'+(animate?'Pause motion':'Play motion')+'">'+(animate?'❚❚':'▶')+'</button>'
     +'<button type="button" class="tool-icon" data-action="in" aria-label="Zoom in">+</button>'
@@ -70,7 +120,26 @@ export async function mountCampus(host,{signal}={}){
   const projected=new T.Vector3();
   function positionTags(){
     camera.updateMatrixWorld();
-    for(const {button,point,key} of tags){projected.copy(point).project(camera);const show=ready&&!tween&&mode!=='pitch'&&projected.z>-1&&projected.z<1&&Math.abs(projected.x)<.91&&Math.abs(projected.y)<.79&&(!selected||key===selected);button.hidden=!show;button.style.left=(projected.x*.5+.5)*100+'%';button.style.top=(-projected.y*.5+.5)*100+'%';button.classList.toggle('active',key===selected);}
+    // Two labels landing on the same spot leave the lower one unclickable - the upper one swallows
+    // the pointer. Static per-key nudges cannot fix that because the overlap depends on the camera
+    // angle, so stack any label that collides with one already placed this frame.
+    const placed=[];
+    for(const {button,point,key} of tags){
+      projected.copy(point).project(camera);
+      const show=ready&&!tween&&mode!=='pitch'&&mode!=='aerial'&&mode!=='plan'&&projected.z>-1&&projected.z<1&&Math.abs(projected.x)<.91&&Math.abs(projected.y)<.79&&(!selected||key===selected);
+      const left=(projected.x*.5+.5)*100,top=(-projected.y*.5+.5)*100;
+      let [ox,oy]=tagOffsets[key]||[0,0];
+      if(show){
+        const px=left/100*host.clientWidth+ox;let py=top/100*host.clientHeight+oy;
+        for(const p of placed)if(Math.abs(px-p.x)<136&&Math.abs(py-p.y)<34)py=p.y+34;
+        oy+=py-(top/100*host.clientHeight+oy);
+        placed.push({x:px,y:py});
+      }
+      button.hidden=!show;
+      button.style.left=left+'%';button.style.top=top+'%';
+      button.style.transform=`translate(calc(-50% + ${ox}px),calc(-50% + ${oy}px))`;
+      button.classList.toggle('active',key===selected);
+    }
   }
   function viewport(){
     const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
@@ -79,7 +148,14 @@ export async function mountCampus(host,{signal}={}){
     const top=mobile()?24:105,bottom=mobile()?88:185;
     return {w,h,reserve,usableW:Math.max(150,w-reserve-48),usableH:Math.max(120,h-top-bottom),offsetX:reserve/2,offsetY:(bottom-top)/2};
   }
-  function projection(){const v=viewport();camera.aspect=v.w/v.h;camera.setViewOffset(v.w,v.h,v.offsetX,v.offsetY,v.w,v.h);camera.updateProjectionMatrix();return v;}
+  function projection(){
+    const v=viewport();
+    if(camera.isOrthographicCamera){
+      const planHeight=(CAMPUS_BOUNDS.max[2]-CAMPUS_BOUNDS.min[2])*1.1,planWidth=planHeight*v.w/v.h;
+      camera.left=-planWidth/2;camera.right=planWidth/2;camera.top=planHeight/2;camera.bottom=-planHeight/2;camera.updateProjectionMatrix();return v;
+    }
+    camera.aspect=v.w/v.h;camera.setViewOffset(v.w,v.h,v.offsetX,v.offsetY,v.w,v.h);camera.updateProjectionMatrix();return v;
+  }
   function fitted(bounds){
     const v=viewport(),center=new T.Vector3().addVectors(new T.Vector3(...bounds.min),new T.Vector3(...bounds.max)).multiplyScalar(.5),direction=new T.Vector3(...bounds.direction).normalize();
     const right=new T.Vector3().crossVectors(new T.Vector3(0,1,0),direction).normalize(),up=new T.Vector3().crossVectors(direction,right).normalize();
@@ -89,7 +165,7 @@ export async function mountCampus(host,{signal}={}){
     }
     return {position:center.clone().addScaledVector(direction,distance*1.06),target:center,offset:{x:v.offsetX,y:v.offsetY}};
   }
-  function currentBounds(){return mode==='pitch'?{min:[-6,0,-16],max:[6,3,25],direction:[.65,.65,1]}:selected?FACILITIES[selected]:mode==='aerial'?{...CAMPUS_BOUNDS,direction:[.35,1.8,.55]}:CAMPUS_BOUNDS;}
+  function currentBounds(){return mode==='pitch'?{min:[-6,0,34],max:[6,3,75],direction:[.65,.65,-1]}:selected?FACILITIES[selected]:mode==='aerial'?{...CAMPUS_BOUNDS,direction:[.18,1.35,-.62]}:CAMPUS_BOUNDS;}
   function currentView(){
     const view=fitted(currentBounds());
     if(isHero()){
@@ -97,8 +173,32 @@ export async function mountCampus(host,{signal}={}){
       const scale=mobile()?(host.clientWidth<480?.58:.64):.63;
       view.position.sub(view.target).multiplyScalar(scale).add(view.target);
       view.offset={x:mobile()?0:-host.clientWidth*.07,y:mobile()?host.clientHeight*.12:0};
+    }else if(mode==='overview'||mode==='aerial'||mode==='plan'){
+      // The dedicated Explore view is deliberately closer than the embedded
+      // page preview, but it still keeps the complete site and road visible.
+      const immersive=hero?.classList.contains('is-exploring');
+      const aerial=mode==='aerial';
+      const scale=aerial?(mobile()?.62:.56):immersive?(mobile()?.55:.55):(mobile()?.78:.84);
+      view.position.sub(view.target).multiplyScalar(scale).add(view.target);
     }
     return view;
+  }
+  function switchCamera(next,isPlan=false){
+    if(camera===next)return;
+    camera=next;controls.object=camera;controls.enableRotate=!isPlan;controls.enableDamping=!isPlan;controls.enablePan=false;controls.enableZoom=false;
+    projection();
+  }
+  function planView(){
+    const center=new T.Vector3().addVectors(new T.Vector3(...CAMPUS_BOUNDS.min),new T.Vector3(...CAMPUS_BOUNDS.max)).multiplyScalar(.5);
+    const shift=mobile()?6:14;
+    camera.position.set(center.x,420,center.z-shift);camera.up.set(0,0,1);controls.target.set(center.x,0,center.z-shift);camera.lookAt(controls.target);camera.updateMatrixWorld();
+  }
+  function enterPlanView(){
+    finishTween();selected=null;mode='plan';driftStopped=true;hero?.classList.add('is-plan-validation');switchCamera(planCamera,true);planView();players?.setVisible(false);markView();dirty=4;wake();
+  }
+  function leavePlanView(){
+    hero?.classList.remove('is-plan-validation');
+    if(camera===planCamera){switchCamera(perspectiveCamera,false);players?.setVisible(true);}
   }
   function drifting(){return isHero()&&ready&&animate&&!reducedQuery.matches&&!driftStopped&&!selected&&mode==='overview'&&!tween&&!!driftBase;}
   function move(view,intro=false){
@@ -127,8 +227,11 @@ export async function mountCampus(host,{signal}={}){
     }
     if(noticeUntil&&now>noticeUntil){noticeUntil=0;notice.classList.remove('is-on');}
     controls.dampingFactor=1-Math.exp(-14*(dt||1/60));
-    const changed=controls.update(dt);
-    const distance=camera.position.distanceTo(controls.target);scene.fog.near=distance+180;scene.fog.far=distance+1000;
+    // The validation view must stay geometrically fixed. OrbitControls retains
+    // spherical state from the perspective camera, so never update it here.
+    const changed=camera===planCamera?false:controls.update(dt);
+    const distance=camera.position.distanceTo(controls.target),haze=nightMix*nightMix*(3-2*nightMix);
+    scene.fog.near=distance+blend(180,45,haze);scene.fog.far=distance+blend(1000,360,haze);
     const near=Math.max(.25,Math.min(12,distance*.025));if(Math.abs(camera.near-near)>.01){camera.near=near;camera.updateProjectionMatrix();}
     if(animate&&players)players.update(dt);
     positionTags();renderer.render(scene,camera);dirty--;frameCount++;
@@ -137,7 +240,7 @@ export async function mountCampus(host,{signal}={}){
     if(tween||dirty>0||changed||(animate&&players))wake();
   }
   function wake(){if(!raf&&!disposed&&!contextUnavailable&&visible&&!document.hidden)raf=requestAnimationFrame(frame);}
-  function resize(){if(disposed||!host.clientWidth||!host.clientHeight)return;projection();renderer.setSize(host.clientWidth,host.clientHeight,false);if(ready)move(currentView());dirty=3;wake();}
+  function resize(){if(disposed||!host.clientWidth||!host.clientHeight)return;projection();renderer.setSize(host.clientWidth,host.clientHeight,false);if(ready){if(mode==='plan')planView();else move(currentView());}dirty=3;wake();}
   const observer=new ResizeObserver(resize);observer.observe(host);
   let wasHero=isHero();
   const heroObserver=new MutationObserver(()=>{const next=isHero();if(next!==wasHero){wasHero=next;if(ready&&mode==='overview'){driftStopped=false;driftTime=0;move(currentView());}}});
@@ -145,13 +248,14 @@ export async function mountCampus(host,{signal}={}){
   const intersection=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;lastTime=0;if(visible){dirty=3;wake();}else{cancelAnimationFrame(raf);raf=0;}},{rootMargin:'0px'});intersection.observe(host);
   const visibility=()=>{lastTime=0;if(!document.hidden){dirty=3;wake();}else{cancelAnimationFrame(raf);raf=0;}};document.addEventListener('visibilitychange',visibility);
   const motionChange=()=>setMotion(!reducedQuery.matches);reducedQuery.addEventListener('change',motionChange);
-  const pointerStart=()=>{driftStopped=true;finishTween();dirty=4;wake();};canvas.addEventListener('pointerdown',pointerStart);controls.addEventListener('change',()=>{dirty=3;wake();});
+  const pointerStart=()=>{if(mode==='plan')return;driftStopped=true;finishTween();dirty=4;wake();};canvas.addEventListener('pointerdown',pointerStart);controls.addEventListener('change',()=>{if(mode==='plan')return;dirty=3;wake();});
   function setMotion(value){animate=value;const b=toolbar.querySelector('[data-action="motion"]');b.setAttribute('aria-pressed',String(animate));b.textContent=animate?'❚❚':'▶';b.setAttribute('aria-label',animate?'Pause motion':'Play motion');lastTime=0;dirty=3;wake();}
   const blend=(a,b,t)=>a+(b-a)*t;
   function applyTimeOfDay(){
     const e=nightMix*nightMix*(3-2*nightMix);
     scene.background.lerpColors(DAY_SKY,NIGHT_SKY,e);scene.fog.color.lerpColors(DAY_HAZE,NIGHT_HAZE,e);
-    hemi.intensity=blend(1.95,.82,e);sun.intensity=blend(3.35,.26,e);fill.intensity=blend(.5,.19,e);
+    hemi.intensity=blend(1.95,.86,e);sun.intensity=blend(3.35,.30,e);fill.intensity=blend(.5,.24,e);
+    hemi.groundColor.lerpColors(DAY_BOUNCE,NIGHT_BOUNCE,e);
     renderer.toneMappingExposure=blend(1.08,1.36,e);
     for(const light of nightLights){
       // Each fitting ramps through its own slice of the transition, so they strike in order.
@@ -162,6 +266,12 @@ export async function mountCampus(host,{signal}={}){
     for(const m of lampMaterials)m.emissiveIntensity=blend(.6,3.2,e);
     for(const m of interiorMaterials)m.emissiveIntensity=blend(.42,1.5,e);
     dirty=3;
+  }
+  function markView(){
+    for(const action of ['aerial','pitch','plan']){
+      const on=action==='plan'?mode==='plan':action==='aerial'?mode==='aerial':mode==='pitch';
+      toolbar.querySelector('[data-action="'+action+'"]')?.setAttribute('aria-pressed',String(on));
+    }
   }
   function setTimeOfDay(value){
     timeOfDay=value==='night'?'night':'day';nightTarget=timeOfDay==='night'?1:0;
@@ -179,20 +289,37 @@ export async function mountCampus(host,{signal}={}){
     return {left:Math.min(...points.map(p=>p[0])),right:Math.max(...points.map(p=>p[0])),top:Math.min(...points.map(p=>p[1])),bottom:Math.max(...points.map(p=>p[1])),available:viewport()};
   }
   const api={
-    setSport(key){finishTween();selected=FACILITIES[key]?key:null;mode=selected?'facility':'overview';driftStopped=!!selected;driftTime=0;move(currentView());},
-    replayIntro(){finishTween();selected=null;mode='overview';driftStopped=false;driftTime=0;emit('select',{key:null});emit('introstart');const view=currentView();camera.position.copy(view.position).multiplyScalar(1.13);move(view,true);},
+    setSport(key){finishTween();leavePlanView();selected=FACILITIES[key]?key:null;mode=selected?'facility':'overview';driftStopped=!!selected;driftTime=0;move(currentView());markView();},
+    replayIntro(){finishTween();leavePlanView();selected=null;mode='overview';driftStopped=false;driftTime=0;emit('select',{key:null});emit('introstart');const view=currentView();camera.position.copy(view.position).multiplyScalar(1.13);move(view,true);markView();},
     setPreset(){resize();},setTimeOfDay,
-    getDiagnostics(){return {ready,asset:'academy-campus.glb',moving:!!tween,cameraDrifting:drifting(),heroView:isHero(),selected,mode,timeOfDay,nightMix,nightTarget,sunIntensity:sun.intensity,hemiIntensity:hemi.intensity,floodlights:nightLights.filter(l=>l.intensity>0).length,players:players?.count||0,animationEnabled:animate,playerPose:players?.getPose(),animationTime:players?.elapsed||0,frames:frameCount,visible,trees:model?.userData.treeCount,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,geometryCount:renderer.info.memory.geometries,textureCount:renderer.info.memory.textures,pixelRatio,frameMs,loadMs,camera:camera.position.toArray(),target:controls.target.toArray(),size:[host.clientWidth,host.clientHeight],three:T.REVISION,focusScreen:focusScreen()};},dispose
+    getDiagnostics(){return {ready,asset:'academy-campus.glb',moving:!!tween,cameraType:camera.type,cameraDrifting:drifting(),heroView:isHero(),selected,mode,timeOfDay,nightMix,nightTarget,sunIntensity:sun.intensity,hemiIntensity:hemi.intensity,floodlights:nightLights.filter(l=>l.intensity>0).length,players:players?.count||0,animationEnabled:animate,playerPose:players?.getPose(),animationTime:players?.elapsed||0,frames:frameCount,visible,trees:model?.userData.treeCount,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,geometryCount:renderer.info.memory.geometries,textureCount:renderer.info.memory.textures,pixelRatio,frameMs,loadMs,camera:camera.position.toArray(),target:controls.target.toArray(),size:[host.clientWidth,host.clientHeight],three:T.REVISION,focusScreen:focusScreen()};},dispose
   };
   toolbar.addEventListener('click',e=>{
+    // Every branch below can change `mode`, so the pressed state is refreshed after the fact.
     const action=e.target.closest('button')?.dataset.action;if(!action||!ready)return;if(!['motion','day','night','tour'].includes(action))driftStopped=true;
     if(action==='tour'){api.replayIntro();return;}
+    if(action==='compare'){
+      const btn=toolbar.querySelector('[data-action="compare"]');
+      const on=btn.getAttribute('aria-pressed')!=='true';
+      btn.setAttribute('aria-pressed',String(on));
+      if(on&&mode!=='plan')enterPlanView();
+      planOverlay(on);markView();return;
+    }
+    if(action==='opacity'){
+      planOpacity=planOpacity>=.75?.25:planOpacity+.25;
+      if(planMesh){planMesh.material.opacity=planOpacity;dirty=3;wake();}
+      return;
+    }
     if(action==='day'||action==='night')setTimeOfDay(action);
     else if(action==='motion')setMotion(!animate);
     else if(action==='reset'){api.setSport(null);emit('select',{key:null,explore:true});}
-    else if(action==='aerial'){finishTween();selected=null;mode='aerial';emit('select',{key:null,explore:true});move(fitted(currentBounds()));}
-    else if(action==='pitch'){finishTween();selected='ground';mode='pitch';emit('select',{key:'ground'});move(fitted(currentBounds()));}
-    else{const offset=camera.position.clone().sub(controls.target).multiplyScalar(action==='in'?.8:1.25).clampLength(8,1100);move({position:controls.target.clone().add(offset),target:controls.target});}
+    else if(action==='aerial'){finishTween();leavePlanView();selected=null;mode='aerial';move(currentView());emit('select',{key:null,explore:true});}
+    // Plan view is an alignment check, not a cinematic mode: it clears the selection but must not
+    // put the page into immersive full-screen, which would pin the hero and block normal scrolling.
+    else if(action==='plan'){enterPlanView();emit('select',{key:null});}
+    else if(action==='pitch'){finishTween();leavePlanView();selected='ground';mode='pitch';emit('select',{key:'ground'});move(fitted(currentBounds()));}
+    else if(camera!==planCamera){const offset=camera.position.clone().sub(controls.target).multiplyScalar(action==='in'?.8:1.25).clampLength(8,1100);move({position:controls.target.clone().add(offset),target:controls.target});}
+    markView();
   });
   function contextLost(event){event.preventDefault();contextUnavailable=true;cancelAnimationFrame(raf);raf=0;report('3D view paused. Waiting for graphics to recover…');}
   function contextRestored(){contextUnavailable=false;renderer.shadowMap.needsUpdate=true;document.getElementById('scene-status')?.setAttribute('hidden','');lastTime=0;dirty=3;wake();}

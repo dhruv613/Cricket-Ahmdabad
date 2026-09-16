@@ -476,6 +476,10 @@
       gap: 38px;
     }
 
+    .facility-btn.is-active .facility-btn-label {
+      text-shadow: 0 0 22px rgba(47, 198, 255, .45);
+    }
+
     .facility-btn {
       background: none;
       border: 0;
@@ -754,7 +758,8 @@
       function pick(key) {
         var next = state.sport === key ? null : key;
         state.sport = next;
-        state.explore = false;
+        // Selecting an area from the immersive campus keeps the visitor in
+        // that full-screen 3D view; only the back action exits it.
         var s = scene();
         if (s && s.setSport) s.setSport(next);
         render();
@@ -789,6 +794,19 @@
         render();
       }
 
+      // Back steps out one level at a time: area -> campus overview -> page. Leaving the immersive
+      // view straight from a selected area used to drop the visitor onto the home page mid-tour.
+      function goBack() {
+        if (state.sport) {
+          state.sport = null;
+          var s = scene();
+          if (s && s.setSport) s.setSport(null);
+        } else {
+          state.explore = false;
+        }
+        render();
+      }
+
       /* ═══════════════════════════════════════════════════════════
          Render — apply state to DOM
          ═══════════════════════════════════════════════════════════ */
@@ -808,6 +826,7 @@
         var heroShown = state.reveal && !ex && !sel;
         var uiShown = state.reveal && !ex;
         document.getElementById('top').classList.toggle('is-exploring', ex);
+        document.body.classList.toggle('campus-fullscreen', ex);
         document.getElementById('top').classList.toggle('has-selection', Boolean(sel));
         document.getElementById('explore-campus').hidden = !state.reveal || ex || Boolean(sel);
 
@@ -883,9 +902,10 @@
         btns.forEach(function (btn) {
           var on = sel === btn.dataset.key;
           btn.setAttribute('aria-pressed', String(on));
-          btn.style.borderBottomColor = on ? '#4da8da' : 'rgba(200,216,232,0)';
-          btn.querySelector('.facility-btn-num').style.color = on ? '#4da8da' : 'rgba(200,216,232,.45)';
-          btn.querySelector('.facility-btn-label').style.color = on ? '#4da8da' : 'rgba(200,216,232,.7)';
+          btn.classList.toggle('is-active', on);
+          btn.style.borderBottomColor = on ? '#2fc6ff' : 'rgba(200,216,232,0)';
+          btn.querySelector('.facility-btn-num').style.color = on ? '#2fc6ff' : 'rgba(198,214,230,.38)';
+          btn.querySelector('.facility-btn-label').style.color = on ? '#2fc6ff' : 'rgba(205,219,233,.58)';
         });
 
         /* ── Facility panel ── */
@@ -929,8 +949,9 @@
         $backBtn.style.opacity = backVisible ? 1 : 0;
         $backBtn.style.pointerEvents = (ex || sel) ? 'auto' : 'none';
         $backBtn.inert = !backVisible;
-        $backBtn.style.top = ex ? '26px' : '104px';
-        $backBtn.textContent = hero.overviewCta || '← CAMPUS OVERVIEW';
+        $backBtn.style.top = ex ? '28px' : '104px';
+        $backBtn.textContent = sel ? (hero.overviewCta || '← CAMPUS OVERVIEW') : (ex ? '← BACK TO HOME' : (hero.overviewCta || '← CAMPUS OVERVIEW'));
+        $backBtn.setAttribute('aria-label', sel ? 'Return to the campus overview' : (ex ? 'Exit the 3D campus view' : 'Return to campus overview'));
 
         /* ── Curtain ── */
         $curtain.style.opacity = state.curtain ? 1 : 0;
@@ -943,7 +964,9 @@
          ═══════════════════════════════════════════════════════════ */
       window.addEventListener('campus:select', function (e) {
         state.sport = (e.detail && e.detail.key) || null;
-        state.explore = !state.sport && !!e.detail.explore;
+        // A hotspot may be chosen while already inside the full-screen tour.
+        // Only an explicit overview/reset event changes that mode.
+        if (!state.sport) state.explore = !!(e.detail && e.detail.explore);
         render();
       });
 
@@ -986,8 +1009,14 @@
         document.documentElement.classList.add('campus-unavailable');
       });
 
-      $backBtn.addEventListener('click', doOverview);
+      $backBtn.addEventListener('click', goBack);
       document.getElementById('explore-campus').addEventListener('click', doExplore);
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && (state.explore || state.sport)) {
+          event.preventDefault();
+          goBack();
+        }
+      });
 
       /* ═══════════════════════════════════════════════════════════
          Boot sequence

@@ -41,28 +41,28 @@ window.ACADEMY = {
       href: '#ground'
     },
     {
-      key: 'indoor', num: '02', label: 'INDOOR',
-      title: '5-Wicket Indoor Cricket Facility',
-      points: ['5 premium indoor wickets', 'High-quality astro surface', 'All-weather practice', 'Professional net setup', 'Bowling machine facility', 'Video analysis', 'Skill development'],
-      href: '#facilities'
-    },
-    {
-      key: 'nets', num: '03', label: 'OUTDOOR NETS',
-      title: '20 Outdoor Nets',
-      points: ['15 turf pitches', '5 astro pitches', 'Professional net setup', 'Spacious practice area', 'Suitable for multiple age groups'],
+      key: 'nets', num: '02', label: 'NETS',
+      title: 'Outdoor Practice Nets',
+      points: ['Open-air training lanes', 'Turf and astro practice surfaces', 'Professional net setup', 'Spacious practice area'],
       href: '#outdoor'
     },
     {
-      key: 'coaching', num: '04', label: 'COACHING',
-      title: 'Professional Cricket Coaching',
-      points: ['Individual coaching', 'Group sessions', 'Batting, bowling & fielding', 'Player development'],
-      href: '#coaching'
+      key: 'courts', num: '03', label: 'COURTS',
+      title: 'Outdoor Multi-Sport Courts',
+      points: ['Volleyball court', 'Two pickleball courts', 'Open-air recreation', 'Court-side seating'],
+      href: '#facilities'
     },
     {
-      key: 'performance', num: '05', label: 'ANALYSIS',
-      title: 'Performance & Analysis Centre',
-      points: ['Video analysis', 'Player performance review', 'Strength & conditioning', 'Technical development', 'Bowling machine training'],
-      href: '#coaching'
+      key: 'food', num: '04', label: 'FOOD COURT',
+      title: 'Food Court & Office',
+      points: ['Player and visitor refreshment area', 'Office and reception', 'Direct access from the courts'],
+      href: '#contact'
+    },
+    {
+      key: 'arrival', num: '05', label: 'ARRIVAL',
+      title: 'Entrance & Parking',
+      points: ['Main entrance from the 9 m road', 'Open tapered driveway and parking', 'Academy access beside the food court and office'],
+      href: '#contact'
     }
   ],
 
@@ -84,7 +84,7 @@ window.ACADEMY = {
   ],
   // Official client copy and replaceable media. Campus renders are labelled as 3D views.
   content: {
-    stats: [['20', 'Outdoor Nets'], ['15', 'Turf Pitches'], ['05', 'Astro Pitches'], ['01', 'Full-Size Cricket Ground']],
+    stats: [['05', 'Outdoor Practice Nets'], ['01', 'Volleyball Court'], ['02', 'Pickleball Courts'], ['100 M', 'Cricket Ground']],
     about: {
       eyebrow: 'About Seventeen Sports',
       heading: ['BUILDING BETTER PLAYERS.', 'BUILDING STRONGER FUTURES.'],
@@ -93,16 +93,16 @@ window.ACADEMY = {
       statement: ["WE DON’T JUST TRAIN PLAYERS.", 'WE BUILD FUTURES.']
     },
     outdoor: {
-      heading: ['20 OUTDOOR NETS'],
+      heading: ['OUTDOOR PRACTICE NETS'],
       subheading: ['BIGGER PRACTICE.', 'BETTER PLAYERS.'],
       surfaces: [
-        { number: '15', label: 'Turf Pitches', points: ['Match-Like Bounce', 'Natural Practice Environment', 'Advanced Skill Work'] },
-        { number: '05', label: 'Astro Pitches', points: ['Consistent Surface', 'High-Volume Training', 'Technical Practice'] }
+        { number: '04', label: 'Turf Lanes', points: ['Match-Like Bounce', 'Natural Practice Environment', 'Advanced Skill Work'] },
+        { number: '01', label: 'Astro Lane', points: ['Consistent Surface', 'High-Volume Training', 'Technical Practice'] }
       ],
       points: ['Spacious Nets', 'Professional Setup', 'Safe & Secure Environment', 'Suitable for All Age Groups'],
       media: { label: 'Outdoor practice nets — 3D campus view', kind: 'outdoor', src: 'assets/campus/views/outdoor-nets.webp', type: 'image' },
       /* `facility` must match a key in the `facilities` list above so the hero campus can frame it. */
-      model: { facility: 'nets', badge: '3D model view', cta: 'View the nets in 3D', note: 'Opens the campus model at the nets', caption: '20 NETS · TURF & ASTRO' }
+      model: { facility: 'nets', badge: '3D model view', cta: 'View the nets in 3D', note: 'Opens the campus model at the nets', caption: '05 NETS · TURF & ASTRO' }
     },
     ground: {
       heading: ['FULL-SIZE GROUND.', 'UNDER THE LIGHTS.'],
@@ -125,11 +125,14 @@ window.ACADEMY = {
     facilities: {
       heading: ['EVERYTHING A', 'CRICKETER NEEDS.'],
       items: [
-        ['15 Turf Pitches', 'A natural practice environment for advanced skill work.', '#outdoor'],
-        ['5 Astro Pitches', 'A consistent surface for high-volume technical practice.', '#outdoor'],
-        ['Full-Size Ground', 'Space for practice matches and tournament play.', '#ground'],
+        ['4 Turf Practice Lanes', 'Natural practice lanes for advanced skill work.', '#outdoor'],
+        ['1 Astro Practice Lane', 'A consistent surface for technical practice.', '#outdoor'],
+        ['100 m Cricket Ground', 'A circular ground for practice matches and tournament play.', '#ground'],
         ['Night Facility', 'Floodlights for evening and night play.', '#ground'],
-        ['Bowling Machine', 'Focused repetition to develop batting technique.', '#outdoor'],
+        ['Volleyball Court', 'An open-air court within the Vastral site plan.', '#facilities'],
+        ['2 Pickleball Courts', 'Outdoor recreation courts beside the practice area.', '#facilities'],
+        ['Food Court & Office', 'Visitor refreshment, office, and reception facilities.', '#contact'],
+        ['Visitor Parking', 'On-site parking at the main entrance from the 9 m road.', '#contact'],
         ['Professional Coaching', 'Structured training in batting, bowling and fielding.', '#coaching'],
         ['Personal Coaching', 'Individual attention for your development.', '#coaching'],
         ['Video Analysis', 'Review technique and track player progress.', '#coaching'],
@@ -147,7 +150,7 @@ window.ACADEMY = {
         { label: 'Under the lights', category: 'Ground', kind: 'ground', type: 'image', src: 'assets/campus/views/ground-night.webp', facility: 'ground' },
         { label: 'A closer look at the practice lanes', category: 'Outdoor', kind: 'outdoor', type: 'image', src: 'assets/campus/views/nets-training.webp', facility: 'nets' },
         { label: 'Built for match day', category: 'Matches', kind: 'ground', type: 'image', src: 'assets/campus/views/match-ground.webp', facility: 'ground' },
-        { label: 'Outdoor strength & conditioning', category: 'Coaching', kind: 'coaching', type: 'image', src: 'assets/campus/views/fitness.webp', facility: 'fitness' }
+        { label: 'Outdoor courts and recreation', category: 'Coaching', kind: 'coaching', type: 'image', src: 'assets/campus/views/fitness.webp', facility: 'courts' }
       ]
     },
     admission: {

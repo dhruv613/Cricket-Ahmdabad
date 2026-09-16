@@ -20,11 +20,15 @@ try{
     check(label+' GLB ready', (await diag(page)).asset==='academy-campus.glb');
     check(label+' no legacy assets',!requests.some(u=>/tree\.glb|sunset\.hdr|grass-diff\.jpg/.test(u)));
     await page.screenshot({scale:'css',path:`artifacts/${label}-initial.png`});
-    if(await page.locator('#explore-campus').isVisible())await page.locator('#explore-campus').click();await settle(page);
+    if(await page.locator('#explore-campus').isVisible()){
+      await page.locator('#explore-campus').click();await settle(page);
+      check(label+' Explore opens immersive campus',await page.locator('#top').evaluate(el=>el.classList.contains('is-exploring')));
+      await page.locator('#back-btn').click();await settle(page);
+    }
     await page.screenshot({scale:'css',path:`artifacts/${label}-overview.png`});
     const a=await diag(page);await page.waitForTimeout(350);const b=await diag(page);
     check(label+' sixteen animated players',b.players===16&&b.animationTime>a.animationTime&&JSON.stringify(a.playerPose)!==JSON.stringify(b.playerPose));
-    for(const key of ['ground','indoor','nets','coaching','performance']){
+    for(const key of ['ground','nets','courts','food','arrival']){
       await page.locator(`.facility-btn[data-key="${key}"]`).click();await settle(page);
       const d=await diag(page),f=d.focusScreen;
       check(label+' selector '+key,d.selected===key&&f.left>=0&&f.right<=d.size[0]-f.available.reserve+2&&f.top>=0&&f.bottom<d.size[1]);
@@ -34,6 +38,7 @@ try{
       if(await page.locator('#explore-campus').isVisible())await page.locator('#explore-campus').click();await settle(page);
       await page.locator(`.campus-hotspot[data-facility="${key}"]`).click();await settle(page);
       check(label+' hotspot moves camera '+key,(await diag(page)).selected===key);
+      await page.locator('#back-btn').click();await settle(page);
     }
     await page.locator('[data-action="pitch"]').click();await settle(page);await page.screenshot({scale:'css',path:`artifacts/${label}-pitch.png`});
     const distance=d=>Math.hypot(...d.camera.map((v,i)=>v-d.target[i]));
@@ -47,9 +52,9 @@ try{
     check(label+' resume players',(await diag(page)).animationTime>paused.animationTime);
     await page.locator('[data-action="night"]').click();await page.waitForTimeout(250);check(label+' floodlights',(await diag(page)).timeOfDay==='night');await page.screenshot({scale:'css',path:`artifacts/${label}-night.png`});
     await page.locator('[data-action="day"]').click();
-    for(const key of ['nets','indoor','performance'])await page.locator(`.facility-btn[data-key="${key}"]`).click();
-    await settle(page);check(label+' rapid selection ends at last facility',(await diag(page)).selected==='performance');
-    await page.locator('[data-action="aerial"]').click();await settle(page);check(label+' aerial clears panel',(await diag(page)).selected===null&&await page.locator('#facility-panel').evaluate(e=>e.inert));
+    for(const key of ['nets','food','arrival'])await page.locator(`.facility-btn[data-key="${key}"]`).click();
+    await settle(page);check(label+' rapid selection ends at last facility',(await diag(page)).selected==='arrival');
+    await page.locator('[data-action="plan"]').click();await settle(page);const plan=await diag(page);check(label+' plan view clears panel',plan.selected===null&&await page.locator('#facility-panel').evaluate(e=>e.inert));check(label+' plan camera is orthographic',plan.cameraType==='OrthographicCamera');await page.screenshot({scale:'css',path:`artifacts/${label}-plan-validation.png`});
     const box=await page.locator('#campus canvas').boundingBox();
     await page.mouse.move(box.x+box.width*.5,box.y+box.height*.45);await page.mouse.down();await page.mouse.move(box.x+box.width*.65,box.y+box.height*.5,{steps:8});await page.mouse.up();
     await page.waitForTimeout(500);const orbit=await diag(page);await page.waitForTimeout(800);
@@ -64,7 +69,8 @@ try{
     await context.close();
   }
   const reduced=await browser.newContext({viewport:{width:1280,height:800},reducedMotion:'reduce'}),page=await reduced.newPage();await page.goto('http://127.0.0.1:4173');await settle(page);const first=await diag(page);await page.waitForTimeout(200);check('Reduced motion keeps athletes visible and still',first.players===16&&!first.animationEnabled&&(await diag(page)).animationTime===first.animationTime);
-  await page.locator('#explore-campus').click();await page.locator('.facility-btn[data-key="coaching"]').click();await settle(page);check('Reduced motion facility selection',(await diag(page)).selected==='coaching');
+  // The full-screen tour uses in-scene hotspots in place of the hidden bottom selector.
+  await page.locator('#explore-campus').click();await settle(page);await page.locator('.campus-hotspot[data-facility="courts"]').click();await settle(page);check('Reduced motion facility selection',(await diag(page)).selected==='courts');
   await page.evaluate(()=>{const h=document.getElementById('campus'),p=h.parentNode,n=h.nextSibling;h.remove();p.insertBefore(h,n);});await settle(page);check('Reconnect creates one canvas',await page.locator('#campus canvas').count()===1);await reduced.close();
   const standalone=await browser.newPage({viewport:{width:1280,height:800}});await standalone.goto('http://127.0.0.1:4173/Rajkot%20Multi-Sport%20Academy%203D/Rajkot%20Multi-Sport%20Academy.dc.html');await settle(standalone);check('Original design HTML loads GLB',(await diag(standalone)).players===16);await standalone.close();
   console.log(`PASS ${results.length} checks`);await writeFile('artifacts/campus-verification.json',JSON.stringify({checks:results},null,2));

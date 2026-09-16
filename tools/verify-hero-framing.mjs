@@ -27,11 +27,17 @@ try{
     assert.equal(still.cameraDrifting,false);assert.deepEqual(still.camera,paused.camera);
     await page.locator('[data-action="motion"]').click();
     await page.locator('#explore-campus').click();await page.waitForFunction(()=>!document.getElementById('campus')._api.getDiagnostics().moving);
+    const immersive=await page.evaluate(()=>{const top=document.getElementById('top').getBoundingClientRect(),back=document.getElementById('back-btn');return {active:document.body.classList.contains('campus-fullscreen')&&document.getElementById('top').classList.contains('is-exploring'),height:top.height,viewport:innerHeight,backVisible:getComputedStyle(back).opacity==='1',label:back.textContent};});
+    assert.ok(immersive.active&&Math.abs(immersive.height-immersive.viewport)<2&&immersive.backVisible&&/BACK TO HOME/.test(immersive.label),'Explore opens full-screen campus with exit control');
+    await page.screenshot({path:`artifacts/campus-fullscreen-${width}.png`,scale:'css'});
     const overview=await page.evaluate(()=>document.getElementById('campus')._api.getDiagnostics());
     assert.equal(overview.heroView,false);
-    if(width===1440){const distance=d=>Math.hypot(...d.camera.map((v,i)=>v-d.target[i]));assert.ok(distance(before)<distance(overview)*.7,'Reference-scale opening zoom');}
-    await page.locator('.facility-btn[data-key="coaching"]').click();await page.waitForFunction(()=>!document.getElementById('campus')._api.getDiagnostics().moving);
+    if(width===1440){const distance=d=>Math.hypot(...d.camera.map((v,i)=>v-d.target[i]));assert.ok(distance(overview)<distance(before),'Immersive campus uses a closer full-screen scale');}
+    await page.locator('.campus-hotspot[data-facility="courts"]').click();await page.waitForFunction(()=>!document.getElementById('campus')._api.getDiagnostics().moving);
+    assert.equal(await page.locator('#top').evaluate(el=>el.classList.contains('is-exploring')),true,'Facility selection keeps the campus full-screen');
     assert.equal(await page.evaluate(()=>document.getElementById('campus')._api.getDiagnostics().cameraDrifting),false);
+    await page.locator('#back-btn').click();
+    assert.equal(await page.locator('#top').evaluate(el=>el.classList.contains('is-exploring')),false,'Back exits the campus view');
     assert.deepEqual(errors,[]);
     console.log('PASS hero background, zoom, motion and pause',width);
     await page.close();

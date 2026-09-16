@@ -2,8 +2,17 @@ import * as T from 'three';
 
 // Animate GLB joints on CPU, then draw all athletes through shared GPU instances.
 export function createPlayers(scene,gltf){
-  const placements=[[-.7,-8.7,'Batting',0],[1.9,9,'Fielding',Math.PI],[0,23,'Bowling',Math.PI],[0,-13,'Fielding',0],[-12,-16,'Fielding',.5],[13,-20,'Fielding',-.5],[-31,5,'Fielding',1.5],[32,7,'Fielding',-1.5],[-22,34,'Fielding',2.5],[20,36,'Fielding',-2.5],[-42,-29,'Fielding',.7],[44,-28,'Fielding',-.7],[-103,-19,'Batting',Math.PI/2],[-85,-19,'Bowling',-Math.PI/2],[22,79,'Run',Math.PI/2],[36,79,'Run',-Math.PI/2]];
-  const actors=[],batches=new Map();let elapsed=0;
+  // The approved Vastral plan places the cricket square at (0, 50).
+  // These positions are deliberately tied to that wicket rather than the former concept layout.
+  const placements=[
+    [0,39.8,'Batting',0],[1.8,59.6,'Fielding',Math.PI],[0,64,'Bowling',Math.PI],[0,36.2,'Fielding',0],
+    [-11,40,'Fielding',.5],[13,40,'Fielding',-.5],[-25,48,'Fielding',1.5],[27,51,'Fielding',-1.5],
+    [-20,66,'Fielding',2.5],[20,68,'Fielding',-2.5],[-39,31,'Fielding',.7],[41,31,'Fielding',-.7],
+    // Training nets stay clear: all animated people belong to the match on the
+    // cricket ground, including these deep boundary fielders.
+    [-38,61,'Fielding',.35],[38,63,'Fielding',-.35],[-14,74,'Run',Math.PI/2],[18,74,'Run',-Math.PI/2]
+  ];
+  const actors=[],batches=new Map();let elapsed=0,shown=true;
   for(const [x,z,clip,yaw] of placements){
     const root=gltf.scene.clone(true);root.position.set(x,.17,z);root.rotation.y=yaw;
     root.getObjectByName('Bat').visible=clip==='Batting';
@@ -36,8 +45,9 @@ export function createPlayers(scene,gltf){
     });
     for(const b of batches.values()){b.parts.forEach((part,i)=>b.mesh.setMatrixAt(i,part.matrixWorld));b.mesh.instanceMatrix.needsUpdate=true;}
     shadows.instanceMatrix.needsUpdate=true;
-    const phase=elapsed%7;ball.visible=phase>4&&phase<5.25;const t=T.MathUtils.clamp((phase-4)/1.25,0,1);ball.position.set(0,.25+Math.abs(1-2*t)*1.5,15-24*t);
+    const phase=elapsed%7;ball.visible=shown&&phase>4&&phase<5.25;const t=T.MathUtils.clamp((phase-4)/1.25,0,1);ball.position.set(0,.25+Math.abs(1-2*t)*1.5,62-24*t);
   }
   update(0);
-  return {count:actors.length,update,getPose(){return actors[0].root.getObjectByName('ArmR').quaternion.toArray();},get elapsed(){return elapsed;},dispose(){actors.forEach(a=>{a.mixer.stopAllAction();a.mixer.uncacheRoot(a.root);});}};
+  function setVisible(value){shown=!!value;group.visible=shown;shadows.visible=shown;ball.visible=shown&&ball.visible;}
+  return {count:actors.length,update,setVisible,getPose(){return actors[0].root.getObjectByName('ArmR').quaternion.toArray();},get elapsed(){return elapsed;},dispose(){actors.forEach(a=>{a.mixer.stopAllAction();a.mixer.uncacheRoot(a.root);});}};
 }

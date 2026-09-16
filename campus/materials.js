@@ -38,6 +38,13 @@ export async function loadMaterials(renderer, report, {compact=false}={}) {
     tin:new T.MeshStandardMaterial({color:0x8a8477,metalness:.55,roughness:.72}),
     tinRust:new T.MeshStandardMaterial({color:0x8a6046,metalness:.35,roughness:.86}),
     track:new T.MeshStandardMaterial({color:0x8a4230,roughness:.95}),
+    // Arrival wedge paving: a made light surface, so the zone never reads as a black slab.
+    paving:new T.MeshStandardMaterial({color:0xa9a396,roughness:.94,normalMap:maps['concrete-normal'],normalScale:new T.Vector2(.12,.12)}),
+    // Open circulation apron: the drawing's pink zone, kept distinct from lawn and paving.
+    apron:new T.MeshStandardMaterial({color:0xb99b8f,roughness:.96,normalMap:maps['concrete-normal'],normalScale:new T.Vector2(.1,.1)}),
+    // Two court colours so the volleyball and pickleball blocks are not read as one surface.
+    courtTeal:new T.MeshStandardMaterial({color:0x2e7f8c,roughness:.9}),
+    courtBlue:new T.MeshStandardMaterial({color:0x2668a8,roughness:.9}),
     asphalt:pbr('asphalt',{color:0x797b7c,roughness:.88,normalScale:new T.Vector2(.32,.32)}),
     concrete:pbr('concrete',{color:0xbab8ad,roughness:.85,normalScale:new T.Vector2(.18,.18)}),
     facade:pbr('concrete',{color:0xe4ded1,roughness:.78,normalScale:new T.Vector2(.1,.1)}),

@@ -38,6 +38,46 @@ Approved photos and videos can be placed in the existing uploads folder. Set eac
 
 The WhatsApp number uses the supplied contact number. Opening hours are displayed as the provided training sessions; no unconfirmed daily operating hours are added.
 
+## Site orientation (important)
+
+The plan drawing reads with +X east. Three.js is right-handed with +Y up, so once north is pinned
+to +Z the world's +X points **west**. `campus/site-layout.js` therefore authors every coordinate
+exactly as it appears on the drawing and mirrors once on export; `orientation.east` records the
+resulting convention. Consumers - the builder, the camera bounds in `campus/facilities.js` and the
+floodlight rig in `campus/entry.js` - all read the mirrored values, so the perspective views, the
+facility cameras and Plan view agree with each other and with the drawing.
+
+Do not "fix" a mirrored-looking scene with a canvas transform. An earlier pass did that
+(`transform: scaleX(-1)` in plan view) which corrected Plan view alone, left every perspective view
+reversed, and rendered signage text backwards.
+
+## Site geometry is locked
+
+All site geometry lives in `campus/site-layout.js` and is traced from the architect's vector
+drawing (AR_CGV_01 Rev R0, STUDIO ERA, 09-03-2026) by reading the PDF's paths directly with
+`tools/extract-plan.py`. Nothing is positioned by eye, and no transform is hard-coded in the
+builder - `campus/model.js`, `campus/facilities.js` and the night rig in `campus/entry.js` all read
+from the layout file.
+
+**Scale.** The drawing forbids scaling, so the page scale was derived from the written dimensions
+and cross-checked three ways: the pickleball block (124.80 x 99.96 pt / 24 x 19.2 m), the
+volleyball run-off box (78.00 x 124.92 pt / 15 x 24 m) and the 100 M ground circle (520.44 pt).
+All three give 5.2 pt/m.
+
+**Written vs reference.** Only the 100 M ground, the 9000 x 18000 volleyball court, the
+12000 x 19200 pickleball court and the 9 M road width are written on the drawing; those are marked
+`written` in the layout. Every other figure is a traced reference approximation for this web demo
+and is **not** a construction dimension. For engineering values, request `ground planning.dwg`.
+
+`LAYOUT_LOCKED = true`. Treat the transforms as immutable: later visual-polish work should not move
+site geometry. Change the plan file, not the builder.
+
+**Checking alignment.** Load the site with `?plan=1` to get a Dev group in the campus controls.
+*Compare with plan* drops into orthographic plan view and lays the architect's sheet over the
+geometry at a known world scale; the `%` button cycles overlay opacity. The overlay image is
+`assets/campus/plan-reference.png`, rendered by `tools/extract-plan.py` over a fixed 260 x 220 m
+world window, so it is georeferenced rather than fitted by hand.
+
 ## Interactions
 
 - Explore 3D Campus clears the hero overlay. Click a hotspot or one of the five facility selectors - 01 Ground, 02 Indoor, 03 Outdoor Nets, 04 Coaching, 05 Analysis - to move the camera to that facility's dedicated target. Selecting a facility stops the ambient camera drift. Campus Overview restores the opening view.
@@ -70,7 +110,7 @@ The campus covers the client's stated facilities: the full-size oval and wicket,
 
 The indoor hall is modelled from the client's own facility photograph: one span laid wall-to-wall in astro, divided into five lanes by full-height netting, under continuous linear fittings, with bowling machines on the outer lanes. Its campus elevation is glazed above a low base so the lanes and their lighting read from outside, which is what the facility camera target looks at. Vegetation uses rounded crowns instead of thousands of individual leaf cards. Sixteen adult-proportioned athletes animate on the ground, at the nets, and on the sprint track.
 
-The static campus is built offline, merged by material, and compressed into a **2.83 MB GLB** containing **198,126 triangles in 64 batches**. The reusable athlete GLB is 21 KB and contains four animation clips. All athletes share GPU instances. Canvas-generated maps are re-encoded to JPEG at build time wherever their alpha is fully opaque, which cuts the baked texture payload from 1.49 MB to 0.31 MB; cut-out maps (net, foliage, contact shadow) stay PNG. The runtime uses one rendering pass, a cached 2048px sun shadow, contact shadows for moving athletes, and adaptive pixel resolution. The previous large tree, scanned source textures, and HDR are retained as source assets but are not requested by the website.
+The static campus is built offline, merged by material, and compressed into a **1.02 MB GLB** containing **61,783 triangles in 38 batches**. The reusable athlete GLB is 21 KB and contains four animation clips. All athletes share GPU instances. Canvas-generated maps are re-encoded to JPEG at build time wherever their alpha is fully opaque, which cuts the baked texture payload from 1.49 MB to 0.31 MB; cut-out maps (net, foliage, contact shadow) stay PNG. The runtime uses one rendering pass, a cached 2048px sun shadow, contact shadows for moving athletes, and adaptive pixel resolution. The previous large tree, scanned source textures, and HDR are retained as source assets but are not requested by the website.
 
 Camera framing uses the facility's world-space bounds and the space available beside the information panel. Hotspots and bottom selectors both move the camera. Camera transitions can be interrupted by dragging or another selection. Depth precision adapts to camera distance to prevent turf and pavement flicker. Animation stops offscreen and in background tabs; reduced-motion users start with still players.
 
@@ -104,5 +144,6 @@ Latest isolated desktop sample at 1440 ? 900 on the local Intel UHD GPU: median 
 On phones the opening canvas fills the entire hero behind the copy. Its closer framing is deliberately allowed to crop the perimeter, matching the desktop hero composition. Explore and facility selections retain their own camera framing. A slow, bounded camera drift runs after the opening transition; dragging, zooming, or choosing a facility stops it. Pause Motion controls both the players and camera motion. Reduced-motion preferences disable automatic camera drift.
 
 Run `node tools/verify-hero-framing.mjs` to check the background, opening zoom, camera motion, pause, selection, and reduced motion at 390px, 680px, and 1440px widths.
-#   C r i c k e t - A h m d a b a d  
+#   C r i c k e t - A h m d a b a d 
+ 
  

@@ -33,7 +33,7 @@ try{
       await page.waitForFunction(key=>{const d=document.getElementById('campus')._api.getDiagnostics();return d.selected===key&&!d.moving;},key);
     }
     await page.locator('[data-gallery="5"]').click();await page.locator('#gallery-preview .model-launch').click();
-    await page.waitForFunction(()=>{const d=document.getElementById('campus')._api.getDiagnostics();return d.selected==='fitness'&&!d.moving;});
+    await page.waitForFunction(()=>{const d=document.getElementById('campus')._api.getDiagnostics();return d.selected==='courts'&&!d.moving;});
     assert.equal(await page.locator('#gallery-dialog').evaluate(el=>el.open),false);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     assert.deepEqual(errors,[]);console.log('PASS images, filters, modal, 3D links and layout',width);
