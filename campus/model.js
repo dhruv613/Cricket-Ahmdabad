@@ -192,11 +192,10 @@ export async function buildCampus(scene,M,report){
   }
 
   report('Building the 100 metre cricket ground');
-  const g=L.cricketGround,fieldGeo=new T.CircleGeometry(g.radius,160);fieldGeo.rotateX(-PI/2);
+  const g=L.cricketGround,fieldGeo=new T.CircleGeometry(g.radius,192);fieldGeo.rotateX(-PI/2);
   const field=b.mesh(fieldGeo,M.turf,[g.x,.11,g.z]);field.castShadow=false;
-  const outfieldMat=M.turf.clone();outfieldMat.color.set(0xc0c6a6);
-  const apron=b.mesh(new T.RingGeometry(g.radius+.4,g.radius+g.apron,160).rotateX(-PI/2),outfieldMat,[g.x,.1,g.z]);apron.castShadow=false;
-  ring(g.radius+.3,.17,'white',.08);wicket();
+  // Rope sits on the 100 M edge itself, which is the tightest the ground comes to the boundary.
+  ring(g.radius,.17,'white',.08);wicket();
   for(let i=0;i<32;i++){const a=i/32*PI*2,x=g.x+Math.cos(a)*(g.radius-2),z=g.z+Math.sin(a)*(g.radius-2);b.box(2.8,.38,.45,i%3?'white':'navy',x,.3,z,[0,-a+PI/2,0]);}
   for(const [x,z] of L.masts)light(x,z,g.x+Math.sign(x)*g.radius*.42,g.z+Math.sign(z)*g.radius*.42);
 
